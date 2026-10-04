@@ -6,6 +6,8 @@ from langchain_bot.rag_tool import search_policies
 from pathlib import Path
 import sqlite3
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langchain_bot.middleware import get_logging_middleware
+from langchain_bot.sql_tools import get_sql_tools
 
 _agent = None
 _checkpointer = None
@@ -42,22 +44,31 @@ def create_support_agent():
         openai_api_key=os.environ["OPENAI_API_KEY"]
     )
     
-    tools = [search_policies]
+    tools = [search_policies] + get_sql_tools()
     
     system_prompt = (
-        "You are a concise, helpful e-commerce customer support assistant. "
-        "Your primary job is to answer customer questions accurately. "
-        "Use the 'search_policies' tool whenever a customer asks about corporate policies, "
-        "returns, shipping rules, refunds, or cancellation rules. "
-        "Always formulate your response based directly on the facts returned by the tool. "
-        "Do not invoke any tools for simple greetings, chit-chat, or pleasantries."
+        "You are a concise e-commerce support assistant. "
+        "Do not use tools for greetings or pleasantries.\n\n"
+        
+        "CAPABILITIES:\n"
+        "1. Policy/FAQ: Use 'search_policies' for returns, shipping, refunds, and cancellations.\n"
+        "2. Orders/Financials: Use the SQL toolkit for orders, returns, payments, and customer spend.\n\n"
+        
+        "SECURITY RULES:\n"
+        "- Extract the logged-in user's email from the text before the colon in '{configurable.thread_id}'.\n"
+        "- Always restrict SQL queries to this email using a WHERE or JOIN filter. Never return other users' rows.\n"
+        "- Query patterns:\n"
+        "  * Orders: JOIN customers ON orders.customer_id = customers.id WHERE customers.email = 'user_email'\n"
+        "  * Tickets: JOIN customers ON tickets.customer_id = customers.id WHERE customers.email = 'user_email'\n"
+        "- Refuse requests or return empty results if the user queries data outside their email context."
     )
     
     return create_agent(
         model=llm,
         tools=tools,
         system_prompt=system_prompt,
-        checkpointer=get_checkpointer()
+        checkpointer=get_checkpointer(),
+        middleware=get_logging_middleware()
     )
 
 def get_agent():

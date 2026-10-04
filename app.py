@@ -143,7 +143,7 @@ def main():
                     st.session_state.user_role = role
                     user_threads = load_threads(email)
                     if user_threads:
-                        st.session_state.conversation_id = user_threads[0]["id"]
+                        st.session_state.conversation_id = user_threads[-1]["id"]
                     else:
                         start_new_conversation()
                     st.success("Login successful!")
