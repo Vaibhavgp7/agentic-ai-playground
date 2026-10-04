@@ -8,6 +8,10 @@ from uuid import uuid4
 from langchain_bot.auth import authenticate_user
 from langchain_bot.agent import get_agent
 from langchain_bot.rag_tool import initialize_vector_store
+import json
+from src.langchain_bot.agent import get_agent, get_thread_config
+
+THREADS_FILE = None
 
 def get_llm() -> ChatOpenAI:
     """Get the language model."""
@@ -30,56 +34,79 @@ def build_chain(llm):
 def init_session():
     """Initialize the session state with login and multi-thread tracking."""
     st.session_state.setdefault("conversations", {})
-    st.session_state.setdefault("messages", [])
     st.session_state.setdefault("user_email", None)
     st.session_state.setdefault("user_role", None)
-    st.session_state.setdefault("conversation_id", None)
     st.session_state.setdefault("vector_store_ready", False)
+    st.session_state.setdefault("messages", [])
+    st.session_state.setdefault("conversation_id", None)
 
 def render_history():
     """Render the chat history."""
-    for msg in st.session_state.messages:
+    config = get_thread_config(st.session_state.user_email, st.session_state.conversation_id)
+    snapshot = get_agent().get_state(config)
+    for msg in snapshot.values.get("messages", []):
         if msg.type == "human":
             with st.chat_message("user"):
                 st.markdown(msg.content)
-        elif msg.type == "ai":
+        elif msg.type == "ai" and msg.content:
             with st.chat_message("assistant"):
                 st.markdown(msg.content)
-
+    
 def chat_round(user_input):
     """Handle a single round of chat."""
-    st.session_state.messages.append(HumanMessage(content=user_input))
-
-    agent_messages = []
-    for msg in st.session_state.messages:
-        role = "user" if msg.type == "human" else "assistant"
-        agent_messages.append({"role": role, "content": msg.content})
-
-    #response = build_chain(llm).invoke({"input": user_input, "history": st.session_state.messages})
-    result = get_agent().invoke({"messages": agent_messages})
-    last_msg = result["messages"][-1]
-    if last_msg:
-        response = AIMessage(content=last_msg.content)
-    else:
-        response = AIMessage(content="I'm sorry, I couldn't generate a response. Please try again.")
-
-    st.session_state.messages.append(AIMessage(content=response.content))
-    st.session_state.conversations[st.session_state.conversation_id] = st.session_state.messages
+    get_agent().invoke(
+        {"messages": [{"role": "user", "content": user_input}]},
+        config=get_thread_config(st.session_state.user_email, st.session_state.conversation_id)
+    )
 
 def start_new_conversation():
     conversation_id = str(uuid4())
-    initial_msgs = [AIMessage(content="Hi! Ask me anything.")]
+    add_thread(st.session_state.user_email, conversation_id)
     st.session_state.conversation_id = conversation_id
-    st.session_state.messages = initial_msgs
-    st.session_state.conversations[conversation_id] = initial_msgs
+    # initial_msgs = [AIMessage(content="Hi! Ask me anything.")]
+    # st.session_state.messages = initial_msgs
+    # st.session_state.conversations[conversation_id] = initial_msgs
 
 def load_conversation(conv_id: str):
     """Load a specific conversation thread into the active session state."""
     if conv_id in st.session_state.conversations:
         st.session_state.conversation_id = conv_id
-        # Copy that thread's messages into the active messages list
         st.session_state.messages = st.session_state.conversations[conv_id]
 
+def load_threads(user_email: str) -> list:
+    """Load the metadata list of conversation structures associated with a specific email account."""
+    if not os.path.exists(THREADS_FILE):
+        return []
+    try:
+        with open(THREADS_FILE, "r") as f:
+            data = json.load(f)
+            return data.get(user_email, [])
+    except Exception:
+        return []
+
+def save_threads(user_email: str, threads: list):
+    """Save the full metadata profile record collection mapping for the target identity string."""
+    data = {}
+    if os.path.exists(THREADS_FILE):
+        try:
+            with open(THREADS_FILE, "r") as f:
+                data = json.load(f)
+        except Exception:
+            pass
+    data[user_email] = threads
+    with open(THREADS_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+def add_thread(user_email: str, conversation_id: str):
+    """Register a new conversational reference node profile tracking element without storing text."""
+    threads = load_threads(user_email)
+    # Deduplicate check
+    if not any(t["id"] == conversation_id for t in threads):
+        threads.append({
+            "id": conversation_id,
+            "label": f"Chat {conversation_id[:8]}"
+        })
+        save_threads(user_email, threads)
 
 def main():
     st.set_page_config(page_title="LangChain Bot", page_icon="🤖")
@@ -88,6 +115,9 @@ def main():
 
     load_dotenv()
     init_session()
+    global THREADS_FILE
+    if not THREADS_FILE:
+        THREADS_FILE = "chat_threads.json"
 
     if not st.session_state.vector_store_ready:
         with st.spinner("Initializing knowledge base..."):
@@ -111,7 +141,11 @@ def main():
                 if authenticate_user(email, password, role):
                     st.session_state.user_email = email
                     st.session_state.user_role = role
-                    start_new_conversation()
+                    user_threads = load_threads(email)
+                    if user_threads:
+                        st.session_state.conversation_id = user_threads[0]["id"]
+                    else:
+                        start_new_conversation()
                     st.success("Login successful!")
                     st.rerun()
                 else:
@@ -125,19 +159,21 @@ def main():
             start_new_conversation()
             st.rerun()
 
-        if not st.session_state.conversations:
+        user_threads = load_threads(st.session_state.user_email)
+
+        if not user_threads:
             st.selectbox("Thread", options=["(no threads yet)"], disabled=True)
         else:
-            conv_ids = list(st.session_state.conversations.keys())
+            thread_ids = [t["id"] for t in user_threads]
             try:
-                current_index = conv_ids.index(st.session_state.conversation_id)
+                current_index = thread_ids.index(st.session_state.conversation_id)
             except ValueError:
-                current_index = len(conv_ids) - 1  # Default to the last conversation if current ID is not found
+                current_index = 0
 
-            selected_id = st.selectbox("Thread", options=conv_ids, index=current_index)
+            selected_id = st.selectbox("Thread", options=thread_ids, index=current_index, format_func=lambda x: next(t["label"] for t in user_threads if t["id"] == x))
             
             if selected_id != st.session_state.conversation_id:
-                load_conversation(selected_id)
+                st.session_state.conversation_id = selected_id
                 st.rerun()
 
     current_conv_id = st.session_state.conversation_id if st.session_state.conversation_id else "—"

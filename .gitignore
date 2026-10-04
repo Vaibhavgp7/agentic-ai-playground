@@ -16,3 +16,4 @@ chroma_db/
 chat_threads.json
 uv.lock
 .python*
+checkpoints.sqlite*

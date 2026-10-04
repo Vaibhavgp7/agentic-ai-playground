@@ -4,15 +4,38 @@ from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_bot.rag_tool import search_policies
 from pathlib import Path
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 _agent = None
+_checkpointer = None
 
-# 9.2 — create_support_agent()
+project_root = Path(__file__).resolve().parent.parent.parent
+
+def get_checkpointer() -> SqliteSaver:
+    """Initialize or retrieve the cached SQLite persistent checkpointer database instance."""
+    global _checkpointer
+    if _checkpointer is not None:
+        return _checkpointer
+        
+    CHECKPOINT_PATH = project_root / os.environ.get("CHECKPOINTS_DB_PATH", "checkpoints.sqlite")
+    conn = sqlite3.connect(CHECKPOINT_PATH, check_same_thread=False)
+    _checkpointer = SqliteSaver(conn)
+    _checkpointer.setup()
+    return _checkpointer
+
+def get_thread_config(user_email: str, conversation_id: str) -> dict:
+    """Generate the config map needed for executing the agent graph with isolated thread state."""
+    return {
+        "configurable": {
+            "thread_id": f"{user_email}:{conversation_id}"
+        },
+        "recursion_limit": 20
+    }
+
 def create_support_agent():
     """Configure and build the main e-commerce support agent."""
-    project_root = Path(__file__).resolve().parent.parent.parent
     load_dotenv(dotenv_path=project_root / ".env")
-
     llm = ChatOpenAI(
         model_name=os.environ["MODEL_NAME"],
         temperature=0.2,
@@ -33,7 +56,8 @@ def create_support_agent():
     return create_agent(
         model=llm,
         tools=tools,
-        system_prompt=system_prompt
+        system_prompt=system_prompt,
+        checkpointer=get_checkpointer()
     )
 
 def get_agent():
