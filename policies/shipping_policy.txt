@@ -1,0 +1,136 @@
+## Shipping Policy
+
+### 1. Overview
+
+This document describes the **shipping and delivery policy** for the fictional e‑commerce store used in your capstone project.
+It exists to support RAG-based answers about delivery timelines, shipping fees, and related topics.
+
+### 2. Shipping Regions
+
+- The store currently ships to:
+  - All major metropolitan and Tier-1 cities in the supported country.
+  - Selected Tier-2 and Tier-3 cities, depending on courier coverage.
+- Remote or hard-to-reach locations may have:
+  - **Longer delivery timelines**.
+  - **Limited carrier options**.
+  - **Additional surcharges** in some cases.
+
+### 3. Shipping Methods and Delivery Times
+
+- **Standard Shipping**
+  - Typical delivery time: **3–7 business days** from the date of dispatch.
+  - Available for most products and locations.
+  - Tracking information is provided once the order is shipped.
+
+- **Express Shipping**
+  - Typical delivery time: **1–3 business days** from the date of dispatch.
+  - Available only for eligible products and pin codes.
+  - Additional fees apply; fees are shown at checkout.
+
+- **Same-Day or Next-Day Delivery**
+  - Available only in select cities and for selected items.
+  - Cut-off times may apply (for example, orders placed before 12:00 PM).
+  - Delivery typically occurs **within 24 hours** of order confirmation.
+
+These timelines are **estimates** and may be affected by factors such as:
+- Public holidays.
+- Weather disruptions.
+- Courier capacity and operational constraints.
+
+### 4. Order Processing and Dispatch
+
+- **Order confirmation**
+  - Once an order is placed and payment is authorized, the customer receives an **order confirmation email**.
+
+- **Processing time**
+  - Most orders are processed and handed over to the courier within **1–2 business days**.
+  - Orders with large or bulky items, or orders requiring additional verification, may take longer.
+
+- **Split shipments**
+  - An order containing multiple items may be shipped in **separate packages** depending on:
+    - Inventory location.
+    - Supplier or warehouse.
+  - Customers receive tracking information for each shipment.
+
+### 5. Shipping Fees
+
+- **Standard Shipping**
+  - May be **free** above a certain order value (e.g., free shipping for orders over a specific amount).
+  - For smaller orders, a flat or region-based fee may apply.
+
+- **Express Shipping**
+  - Always charged as an additional fee, calculated based on:
+    - Weight and volume.
+    - Destination pin code.
+    - Carrier charges.
+
+- **Special surcharges**
+  - Remote area fees.
+  - Oversized item handling fees.
+
+At checkout, all **applicable shipping charges** are displayed before the customer confirms the order.
+
+### 6. Tracking and Delivery Updates
+
+- **Tracking information**
+  - Once the order ships, a tracking ID and a tracking link are provided via:
+    - Email.
+    - The “My Orders” section of the customer account.
+
+- **Delivery notifications**
+  - Customers may receive:
+    - “Out for delivery” notifications on the scheduled delivery day.
+    - Delivery confirmation after the package has been delivered.
+
+- **Failed delivery attempts**
+  - If the courier cannot deliver the package (e.g., due to incorrect address or unavailability), they may:
+    - Attempt **redelivery**.
+    - Contact the customer for updated information.
+    - Return the package to the sender after multiple failed attempts.
+
+### 7. Delayed or Lost Shipments
+
+- **Shipping delays**
+  - If a shipment is delayed beyond the typical delivery window, customers should:
+    - Check tracking information.
+    - Contact support via chatbot or help center.
+  - The support team may:
+    - Investigate with the courier.
+    - Provide updated delivery estimates.
+    - Offer partial refunds or vouchers in some cases (depending on internal policy).
+
+- **Lost or missing packages**
+  - If a tracking status shows “Delivered” but the customer did not receive the package:
+    - Customers should first check with neighbors, security desks, or family members.
+    - If still not found, the support team opens an **investigation ticket** with the courier.
+  - After investigation:
+    - A **replacement order** may be shipped, or
+    - A **refund** may be issued, depending on the findings and policy.
+
+### 8. Address Changes and Cancellations Before Dispatch
+
+- **Changing the shipping address**
+  - Address changes are best requested **before dispatch**.
+  - Once an order is shipped, address changes might not be possible or may require contacting the courier directly.
+
+- **Cancelling an order before shipping**
+  - If the order has not yet been shipped, customers can typically **cancel the order** with full refund.
+  - The chatbot may assist in **raising a cancellation request**, which is then processed by the system.
+
+### 9. How the Chatbot Should Use This Policy
+
+- For general shipping questions like:
+  - “How long does shipping take?”
+  - “Do you offer express delivery?”
+  - “Why is my order delayed?”
+  - “How much is the shipping fee?”
+  - “When will I get tracking information?”
+- The chatbot should use **RAG with this shipping policy document** to provide grounded, policy-based answers.
+
+- For **order-specific** questions like:
+  - “What is the status of my order #123?”
+  - “Is my order shipped yet?”
+  - “What is the tracking number for my order?”
+- The chatbot must rely on **SQL tools** querying the `orders`, `order_items`, and related tables, rather than on this generic policy text.
+
+

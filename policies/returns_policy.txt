@@ -1,0 +1,130 @@
+## Returns Policy
+
+### 1. Overview
+
+This document describes the **returns and refunds policy** for the fictional e‑commerce store used in your capstone project.
+It is intentionally detailed so that a Retrieval-Augmented Generation (RAG) system can provide accurate, grounded answers
+about returns, refunds, and exchanges.
+
+Unless otherwise specified, this policy applies to **all physical products** purchased on our platform.
+
+### 2. Return Eligibility
+
+- **Return window**
+  - Customers may request a return **within 30 calendar days** from the **delivery date** shown in the order.
+  - After 30 days, items are **not eligible** for returns, except where required by local consumer law.
+
+- **Condition of items**
+  - Items must be in **original condition**, unused, and with all **original packaging, labels, and accessories**.
+  - Items that are damaged, heavily used, or missing parts may be **partially refunded** or **rejected** based on inspection.
+
+- **Non-returnable items**
+  - Personalized or custom-made products, unless they arrive damaged or defective.
+  - Digital products or subscriptions, once they have been accessed or downloaded.
+  - Items marked as **“Final Sale”** or **“Non-returnable”** on the product detail page at the time of purchase.
+
+- **Defective or damaged items**
+  - If the item is defective, damaged in transit, or not as described, customers should **initiate a return request immediately**
+    and upload photos where possible.
+  - Defective or damaged items are usually eligible for **free return shipping** and **full refund** or **replacement**.
+
+### 3. Return Request Process
+
+1. The customer logs in with their **registered email and password**.
+2. The customer accesses their **orders** and selects the order and specific items they want to return.
+3. The customer submits a **return request** that includes:
+   - Order ID and order item(s) to be returned.
+   - Reason for return (e.g., wrong item shipped, defective product, changed mind).
+   - Optional comments or photos.
+4. The system records the return request in the **`returns`** table and creates a related **ticket** in the **`tickets`** table.
+5. The customer receives an **email confirmation** stating that:
+   - A **ticket has been created**.
+   - The request is in **PENDING** state and will be reviewed by a human agent.
+
+At this stage, the chatbot must **not auto-approve** the return. It may inform the customer of the typical next steps and
+approximate timelines.
+
+### 4. Return Review and Approval (Human in the Loop)
+
+- All return requests start in **PENDING** status.
+- An **admin user** reviews each return request by inspecting:
+  - The order details, product type, and timestamps.
+  - The reason for return and any attached comments or evidence.
+  - Whether the request falls inside the allowed **30-day window**.
+- The admin may then:
+  - **APPROVE** the return: customer is allowed to ship the item back or drop it at a designated location.
+  - **REJECT** the return: customer is informed with a clear reason (e.g., outside return window, item category not returnable).
+  - **EDIT** details of the return request (for example, correcting quantities or clarifying notes).
+
+When the admin updates the status, the related ticket should be updated as well (e.g., from `OPEN` to `IN_REVIEW` to `RESOLVED`).
+
+### 5. Return Shipping and Costs
+
+- **Return shipping label**
+  - For approved returns, the customer usually receives a **return shipping label** by email or downloadable link.
+  - In this educational project, you may simply simulate this step in messaging; no real label needs to be generated.
+
+- **Who pays for return shipping?**
+  - If the return is due to **defective, damaged, or incorrect items**, the store typically **covers return shipping costs**.
+  - If the return is due to **change of mind** or **customer preference**, the customer may be responsible for return shipping
+    or may have the cost deducted from the refund.
+
+- **Return packaging**
+  - Items should be securely packed to avoid damage during transit.
+  - Whenever possible, customers should reuse the **original packaging**.
+
+### 6. Refunds
+
+- **Refund methods**
+  - Approved returns result in a **refund** to the original payment method when possible (e.g., card, UPI, wallet).
+  - In some cases, refunds may be issued as **store credit** or **gift cards**.
+
+- **Refund amount**
+  - The standard refund amount includes:
+    - The price of returned items.
+    - Applicable taxes for those items.
+  - Shipping fees may or may not be refunded depending on the reason:
+    - For defective or incorrectly shipped items, shipping is usually refunded.
+    - For change-of-mind returns, original shipping costs are usually **not refunded**.
+
+- **Refund timeline**
+  - After the returned items are **received and inspected**, the refund is typically processed within **5–10 business days**.
+  - Actual time for funds to appear in the customer’s account depends on the **payment provider** or **banking institution**.
+
+### 7. Exchanges
+
+- Direct exchanges (e.g., different size or color) may be handled in one of two ways:
+  - The customer **returns** the original item and places a **new order** for the desired variant.
+  - The store processes a return and **automatically ships** a replacement based on availability.
+- In this educational project, you can model an exchange as:
+  - A normal **return request**, possibly paired with a second **order** for the replacement item.
+
+### 8. Special Cases
+
+- **Late returns (after 30 days)**
+  - Typically not accepted, but an admin may **manually approve** them as an exception, often with a partial refund or store credit.
+
+- **Missing or damaged packaging**
+  - The refund amount may be **reduced** to account for missing accessories, damaged boxes, or signs of heavy use.
+
+- **Fraud or abuse**
+  - Repeated suspicious return patterns may lead to:
+    - Additional verification steps.
+    - Rejection of certain requests.
+    - Account-level flags in the system.
+
+### 9. How the Chatbot Should Use This Policy
+
+- When a customer asks general questions such as:
+  - “What is your returns policy?”
+  - “How long do I have to return an item?”
+  - “Do I need the original packaging to return a product?”
+  - “Who pays for return shipping?”
+  - “When will I get my refund?”
+- The chatbot should **use RAG with this document** to answer in a grounded way.
+- For **order-specific** questions such as:
+  - “What is the status of my return for order #123?”
+  - “Has my refund been processed yet?”
+- The chatbot should switch to **SQL tools** rather than relying on this generic policy text.
+
+

@@ -1,0 +1,158 @@
+## FAQ: Returns, Refunds, and Cancellations
+
+This document contains **frequently asked questions (FAQ)** related to returns, refunds, and order cancellations.
+It is designed to be used by a RAG system for **semantic search**.
+
+---
+
+### 1. Returns – General Questions
+
+**Q1. How long do I have to return an item?**  
+You can usually return an eligible item within **30 calendar days** from the **delivery date** shown in your order details.
+After 30 days, the item is generally **not eligible** for return unless required by local consumer protection laws.
+
+**Q2. In what condition should items be for a successful return?**  
+Items should be in **original condition**, unused, and with all **original packaging, manuals, tags, and accessories**.
+If items show signs of heavy use, missing parts, or damage, the return may be **rejected** or refunded only **partially**.
+
+**Q3. Which items are non-returnable?**  
+Some categories are normally **non-returnable**, including:
+- Personalized or made-to-order items, unless they arrive damaged or defective.
+- Digital goods and subscriptions that have already been accessed, used, or downloaded.
+- Items clearly marked as **“Final Sale”** or **“Non-returnable”** at the time of purchase.
+
+**Q4. Can I return a defective or damaged item?**  
+Yes. If your item arrives **damaged, defective, or not as described**, you should initiate a **return request as soon as possible**.
+In such cases, return shipping is often **free**, and you may be eligible for a **full refund** or **replacement**.
+
+**Q5. Do I need the original packaging to return a product?**  
+Original packaging is **strongly recommended**. It helps protect the item during return transit and speeds up inspection.
+If you do not have the original packaging, your return may still be accepted, but the refund amount could be **reduced**
+if the missing packaging or accessories significantly affect resale value.
+
+---
+
+### 2. Returns – Process and Approval
+
+**Q6. How do I initiate a return?**  
+To initiate a return:
+1. Log in with your **registered email and password**.
+2. Go to the **My Orders** section.
+3. Select the relevant order and choose the **item(s) to return**.
+4. Provide a **reason** for the return and any optional comments or photos.
+5. Submit the request.
+
+The system will create a **return request** and open a **support ticket**. You will receive an **email confirmation**
+that your request is in **PENDING** status and will be reviewed by a human agent.
+
+**Q7. Are returns automatically approved?**  
+No. Returns are **not automatically approved**. A human **admin** reviews each return request to ensure it meets policy
+criteria (e.g., within the 30-day window, correct item category, acceptable condition).
+The admin may then approve, reject, or edit the request.
+
+**Q8. How long does it take for my return to be approved or rejected?**  
+Review times may vary, but most return requests are reviewed within **2–5 business days**.
+You will be notified by email once the status changes to **APPROVED** or **REJECTED**.
+
+**Q9. Can I change a return request after submitting it?**  
+If your request is still in **PENDING** status, you may contact support or use the chatbot to **update or cancel** the
+return request. Once the admin has taken action or the item has been shipped back, changes may no longer be possible.
+
+---
+
+### 3. Refunds
+
+**Q10. When will I get my refund after returning an item?**  
+Once the returned items are **received and inspected**, refunds are usually processed within **5–10 business days**.
+The actual time for the refunded amount to appear in your account depends on your **bank or payment provider**.
+
+**Q11. How will I receive my refund?**  
+Whenever possible, refunds are made to the **original payment method** used for the purchase (e.g., credit card, UPI, wallet).
+In special cases, refunds may be issued as **store credit** or **gift cards**.
+
+**Q12. Will my original shipping fee be refunded?**  
+This depends on the reason for return:
+- If the item was **defective, damaged, or incorrectly shipped**, the **original shipping fee is often refunded**.
+- If you are returning an item due to **change of mind** or personal preference, shipping fees are usually **not refunded**.
+
+**Q13. Can I get a partial refund?**  
+Yes. Partial refunds may occur when:
+- Items show signs of heavy use or damage.
+- Parts, accessories, or original packaging are missing.
+- Only part of a multi-item order is returned.
+
+---
+
+### 4. Cancellations – Before Shipping
+
+**Q14. Can I cancel my order before it is shipped?**  
+In many cases, yes. If your order has **not yet been shipped**, you can usually cancel it directly from your account
+or by asking the chatbot to **raise a cancellation request**.
+Once the cancellation is processed, you should receive a **full refund**.
+
+**Q15. How long do I have to cancel an order before shipping?**  
+There is no fixed time limit, but **earlier is better**. Once your order is packed and handed over to the courier,
+it may no longer be possible to cancel it. At that point, you may need to treat it as a **return** after delivery.
+
+**Q16. Will I be charged for cancelling my order before it ships?**  
+In most cases, there are **no cancellation fees** if the order is cancelled before shipping.
+Any authorized payments are **voided or refunded** to your original payment method.
+
+---
+
+### 5. Cancellations – After Shipping or Delivery
+
+**Q17. Can I cancel an order that has already shipped?**  
+Once an order has shipped, full cancellation is often **not possible**. However, you can:
+- Decline the delivery (if your local courier allows it), or
+- Accept the package and then initiate a **return** according to the returns policy.
+
+**Q18. Can I cancel part of my order (only some items)?**  
+Partial cancellations depend on the **fulfilment stage** and **warehouse constraints**.
+If the items have not yet been packed or shipped, you may cancel individual items. If not, you might need to return
+unwanted items after delivery.
+
+**Q19. What if my order is delayed—can I cancel it then?**  
+In many situations, you can request a **cancellation or compensation** if your order is significantly delayed.
+The exact handling may depend on carrier investigations and internal rules, but customer support will try to provide
+a **fair resolution** (refund, voucher, or replacement).
+
+---
+
+### 6. Interaction with the Chatbot
+
+**Q20. What can the chatbot do regarding returns and cancellations?**  
+The chatbot can:
+- Explain the **returns, refunds, and cancellations policies** based on this FAQ and the policy documents.
+- Help you **start a return request** for eligible items.
+- Help you **raise a cancellation request** before shipping (subject to system and policy rules).
+- Provide **status updates** by querying your orders and returns through **SQL tools**.
+
+The chatbot **cannot**:
+- Guarantee approval of returns or cancellations.
+- Override decisions made by human agents.
+- Modify bank timelines for refunds.
+
+**Q21. Will the chatbot send me emails about my returns or cancellations?**  
+Yes. When you request a **return** or **cancellation** through the chatbot, the system:
+- Creates or updates the relevant database entries (e.g., `returns`, `tickets`).
+- Sends a **confirmation email** to your registered email address.
+- Logs the email in an `email_logs` table for auditing and tracking.
+
+**Q22. Is a human involved in my return or cancellation request?**  
+Yes. This system is designed with **human-in-the-loop**:
+- A human **admin** reviews return requests and certain complex cancellation cases.
+- The admin may approve, reject, or edit requests and leave internal notes.
+- The chatbot explains that a **ticket has been raised** and that a **human agent** will review your case.
+
+---
+
+### 7. How the RAG System Should Use This FAQ
+
+When the user asks a **policy-style** question that does not require looking up personal order data, the RAG system should:
+- Retrieve the **most relevant answers** from this FAQ and related policy documents.
+- Present concise, user-friendly information that is **grounded** in this text.
+- Clearly separate **general policy information** from **order-specific status updates**, which must use SQL tools.
+
+This FAQ should **not** be used as the sole source for personal order status, ticket status, or payment status. Those
+
