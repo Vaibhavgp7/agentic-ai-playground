@@ -6,6 +6,8 @@ import os
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from uuid import uuid4
 from langchain_bot.auth import authenticate_user
+from langchain_bot.agent import get_agent
+from langchain_bot.rag_tool import initialize_vector_store
 
 def get_llm() -> ChatOpenAI:
     """Get the language model."""
@@ -32,6 +34,7 @@ def init_session():
     st.session_state.setdefault("user_email", None)
     st.session_state.setdefault("user_role", None)
     st.session_state.setdefault("conversation_id", None)
+    st.session_state.setdefault("vector_store_ready", False)
 
 def render_history():
     """Render the chat history."""
@@ -43,10 +46,23 @@ def render_history():
             with st.chat_message("assistant"):
                 st.markdown(msg.content)
 
-def chat_round(llm, user_input):
+def chat_round(user_input):
     """Handle a single round of chat."""
     st.session_state.messages.append(HumanMessage(content=user_input))
-    response = build_chain(llm).invoke({"input": user_input, "history": st.session_state.messages})
+
+    agent_messages = []
+    for msg in st.session_state.messages:
+        role = "user" if msg.type == "human" else "assistant"
+        agent_messages.append({"role": role, "content": msg.content})
+
+    #response = build_chain(llm).invoke({"input": user_input, "history": st.session_state.messages})
+    result = get_agent().invoke({"messages": agent_messages})
+    last_msg = result["messages"][-1]
+    if last_msg:
+        response = AIMessage(content=last_msg.content)
+    else:
+        response = AIMessage(content="I'm sorry, I couldn't generate a response. Please try again.")
+
     st.session_state.messages.append(AIMessage(content=response.content))
     st.session_state.conversations[st.session_state.conversation_id] = st.session_state.messages
 
@@ -72,6 +88,17 @@ def main():
 
     load_dotenv()
     init_session()
+
+    if not st.session_state.vector_store_ready:
+        with st.spinner("Initializing knowledge base..."):
+            try:
+                initialize_vector_store()
+                st.session_state.vector_store_ready = True
+                st.success("Vector store initialized successfully!")
+            except Exception as e:
+                st.error(f"Failed to initialize knowledge base: {e}")
+                st.stop()
+
     user_email = st.session_state.user_email
 
     if not user_email:
@@ -120,7 +147,7 @@ def main():
     llm = get_llm()
     if prompt := st.chat_input("Ask a question"):
         with st.chat_message("assistant"), st.spinner("Thinking..."):
-            chat_round(llm, prompt)
+            chat_round(prompt)
         st.rerun()
 
 if __name__ == "__main__": main()

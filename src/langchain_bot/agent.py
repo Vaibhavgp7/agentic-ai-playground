@@ -14,7 +14,7 @@ def create_support_agent():
     load_dotenv(dotenv_path=project_root / ".env")
 
     llm = ChatOpenAI(
-        model_name="gpt-4o-mini",
+        model_name=os.environ["MODEL_NAME"],
         temperature=0.2,
         openai_api_key=os.environ["OPENAI_API_KEY"]
     )
