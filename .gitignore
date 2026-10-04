@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+credentials.json
+token.pickle
+*.db
+chroma_db/
+chat_threads.json
+uv.lock
+.python*
