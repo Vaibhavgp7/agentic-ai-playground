@@ -33,9 +33,6 @@ def init_session():
     st.session_state.setdefault("user_role", None)
     st.session_state.setdefault("conversation_id", None)
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = [AIMessage(content="Hi! Ask me anything.")]
-
 def render_history():
     """Render the chat history."""
     for msg in st.session_state.messages:
@@ -51,6 +48,22 @@ def chat_round(llm, user_input):
     st.session_state.messages.append(HumanMessage(content=user_input))
     response = build_chain(llm).invoke({"input": user_input, "history": st.session_state.messages})
     st.session_state.messages.append(AIMessage(content=response.content))
+    st.session_state.conversations[st.session_state.conversation_id] = st.session_state.messages
+
+def start_new_conversation():
+    conversation_id = str(uuid4())
+    initial_msgs = [AIMessage(content="Hi! Ask me anything.")]
+    st.session_state.conversation_id = conversation_id
+    st.session_state.messages = initial_msgs
+    st.session_state.conversations[conversation_id] = initial_msgs
+
+def load_conversation(conv_id: str):
+    """Load a specific conversation thread into the active session state."""
+    if conv_id in st.session_state.conversations:
+        st.session_state.conversation_id = conv_id
+        # Copy that thread's messages into the active messages list
+        st.session_state.messages = st.session_state.conversations[conv_id]
+
 
 def main():
     st.set_page_config(page_title="LangChain Bot", page_icon="🤖")
@@ -71,6 +84,7 @@ def main():
                 if authenticate_user(email, password, role):
                     st.session_state.user_email = email
                     st.session_state.user_role = role
+                    start_new_conversation()
                     st.success("Login successful!")
                     st.rerun()
                 else:
@@ -79,10 +93,25 @@ def main():
 
     with st.sidebar:
         st.header("Conversations")
+
+        if st.button("Start new conversation"):
+            start_new_conversation()
+            st.rerun()
+
         if not st.session_state.conversations:
             st.selectbox("Thread", options=["(no threads yet)"], disabled=True)
         else:
-            st.selectbox("Thread", options=list(st.session_state.conversations.keys()))
+            conv_ids = list(st.session_state.conversations.keys())
+            try:
+                current_index = conv_ids.index(st.session_state.conversation_id)
+            except ValueError:
+                current_index = len(conv_ids) - 1  # Default to the last conversation if current ID is not found
+
+            selected_id = st.selectbox("Thread", options=conv_ids, index=current_index)
+            
+            if selected_id != st.session_state.conversation_id:
+                load_conversation(selected_id)
+                st.rerun()
 
     current_conv_id = st.session_state.conversation_id if st.session_state.conversation_id else "—"
     st.info(f"Logged in as: **{st.session_state.user_email}** | Role: **{st.session_state.user_role}** | Chat ID: **{current_conv_id}**")
