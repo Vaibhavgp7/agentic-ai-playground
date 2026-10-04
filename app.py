@@ -1,10 +1,9 @@
-from email import message
-
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage
 import os
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 def get_llm() -> ChatOpenAI:
     """Get the language model."""
@@ -14,6 +13,15 @@ def get_llm() -> ChatOpenAI:
         temperature=0.3
     )
     return llm
+
+def build_chain(llm):
+    """Build the chat chain."""
+    prompt = ChatPromptTemplate.from_messages([
+        MessagesPlaceholder(variable_name="history"),
+        ("system",  "You are a concise, helpful assistant. Use prior chat history to stay on context."),
+        ("human", "{input}")
+    ])
+    return prompt | llm
 
 def init_session():
     """Initialize the session state."""
@@ -33,11 +41,13 @@ def render_history():
 def chat_round(llm, user_input):
     """Handle a single round of chat."""
     st.session_state.messages.append(HumanMessage(content=user_input))
-    response = llm.invoke(st.session_state.messages)
+    response = build_chain(llm).invoke({"input": user_input, "history": st.session_state.messages})
     st.session_state.messages.append(AIMessage(content=response.content))
 
 def main():
     st.set_page_config(page_title="LangChain Bot", page_icon="🤖")
+    st.title("LangChain Bot")
+    st.caption("A simple chatbot using LangChain.")
     load_dotenv()
     init_session()
     render_history()
