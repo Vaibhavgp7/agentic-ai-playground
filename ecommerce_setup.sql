@@ -149,7 +149,7 @@ CREATE TABLE email_logs (
 
 -- Users (3 customers + 1 admin)
 INSERT INTO users (id, email, password, full_name, role, created_at) VALUES
-  (1, 'sivaprasad.valluru@gmail.com', 'siva@123', 'Siva', 'customer', '2026-08-24T10:00:00'),
+  (1, 'vaibhavkg77@gmail.com', 'siva@123', 'Siva', 'customer', '2026-08-24T10:00:00'),
   (2, 'bob@example.com', 'bob123', 'Bob Customer', 'customer', '2026-09-03T10:00:00'),
   (3, 'charlie@example.com', 'charlie123', 'Charlie Customer', 'customer', '2026-09-17T10:00:00'),
   (4, 'admin@example.com', 'admin123', 'Admin User', 'admin', '2026-08-17T10:00:00');

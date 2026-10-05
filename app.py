@@ -9,7 +9,8 @@ from langchain_bot.auth import authenticate_user
 from langchain_bot.agent import get_agent
 from langchain_bot.rag_tool import initialize_vector_store
 import json
-from src.langchain_bot.agent import get_agent, get_thread_config
+from src.langchain_bot.agent import get_agent, get_thread_config, reset_agent
+from langchain_bot.gmail_tools import initialize_gmail, is_gmail_available
 
 THREADS_FILE = None
 
@@ -39,6 +40,7 @@ def init_session():
     st.session_state.setdefault("vector_store_ready", False)
     st.session_state.setdefault("messages", [])
     st.session_state.setdefault("conversation_id", None)
+    st.session_state.setdefault("gmail_enabled", False)
 
 def render_history():
     """Render the chat history."""
@@ -119,6 +121,12 @@ def main():
     if not THREADS_FILE:
         THREADS_FILE = "chat_threads.json"
 
+    if not st.session_state.gmail_enabled:
+        if is_gmail_available():
+            st.session_state.gmail_enabled = True
+        else:
+            st.session_state.gmail_enabled = initialize_gmail()
+
     if not st.session_state.vector_store_ready:
         with st.spinner("Initializing knowledge base..."):
             try:
@@ -175,6 +183,19 @@ def main():
             if selected_id != st.session_state.conversation_id:
                 st.session_state.conversation_id = selected_id
                 st.rerun()
+
+        st.write("---")
+        st.header("System Integrations")
+        if st.session_state.gmail_enabled:
+            st.success("🟢 Gmail: Enabled")
+        else:
+            st.warning("🟡 Gmail: Not Configured")
+            if st.button("Retry Gmail Connection"):
+                st.session_state.gmail_enabled = initialize_gmail()
+                if st.session_state.gmail_enabled:
+                    reset_agent()  # Force rebuilds the agent graph with the newly active Gmail tools
+                    st.success("Gmail connected successfully!")
+                    st.rerun()
 
     current_conv_id = st.session_state.conversation_id if st.session_state.conversation_id else "—"
     st.info(f"Logged in as: **{st.session_state.user_email}** | Role: **{st.session_state.user_role}** | Chat ID: **{current_conv_id}**")

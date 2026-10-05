@@ -8,6 +8,7 @@ import sqlite3
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain_bot.middleware import get_logging_middleware
 from langchain_bot.sql_tools import get_sql_tools
+from langchain_bot.gmail_tools import get_gmail_tools
 
 _agent = None
 _checkpointer = None
@@ -44,7 +45,7 @@ def create_support_agent():
         openai_api_key=os.environ["OPENAI_API_KEY"]
     )
     
-    tools = [search_policies] + get_sql_tools()
+    tools = [search_policies] + get_sql_tools() + get_gmail_tools()
     
     system_prompt = (
         "You are a concise e-commerce support assistant. "
@@ -52,7 +53,10 @@ def create_support_agent():
         
         "CAPABILITIES:\n"
         "1. Policy/FAQ: Use 'search_policies' for returns, shipping, refunds, and cancellations.\n"
-        "2. Orders/Financials: Use the SQL toolkit for orders, returns, payments, and customer spend.\n\n"
+        "2. Orders/Financials: Use the SQL toolkit for orders, returns, payments, and customer spend.\n"
+        "3. Notifications: Whenever a customer notification is required (such as when a cancellation is confirmed, "
+        "a return ticket is created, or a return status is updated), you MUST use the send_gmail_notification tool "
+        "to immediately send a confirmation or 'request received' email to the customer.\n\n"
         
         "SECURITY RULES:\n"
         "- Extract the logged-in user's email from the text before the colon in '{configurable.thread_id}'.\n"
@@ -76,4 +80,10 @@ def get_agent():
     global _agent
     if _agent is None:
         _agent = create_support_agent()
+    return _agent
+
+def reset_agent():
+    """Clear the cached agent instance and rebuild it with freshly initialized tools."""
+    global _agent
+    _agent = create_support_agent()
     return _agent
