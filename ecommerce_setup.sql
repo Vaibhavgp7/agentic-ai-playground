@@ -109,8 +109,8 @@ CREATE TABLE pending_actions (
   product_name TEXT,                 -- product name (for returns, NULL for cancellations)
   reason TEXT,                        -- reason (for returns, NULL for cancellations)
   status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
@@ -143,6 +143,20 @@ CREATE TABLE email_logs (
   email_type TEXT NOT NULL,
   sent_at TEXT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Pending actions
+CREATE TABLE IF NOT EXISTS pending_actions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  thread_id TEXT NOT NULL,
+  user_email TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  order_id TEXT NOT NULL,
+  product_name TEXT,
+  reason TEXT,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Seed data

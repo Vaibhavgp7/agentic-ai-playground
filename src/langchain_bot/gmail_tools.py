@@ -1,4 +1,3 @@
-# src/langchain_bot/gmail_tools.py
 import os
 import pickle
 from datetime import datetime
@@ -9,14 +8,12 @@ from googleapiclient.discovery import build
 from langchain.tools import tool, BaseTool
 from langchain_google_community.gmail.send_message import GmailSendMessage
 from pathlib import Path
+from sqlalchemy import text
 
-# Import the database initializer to grab the connection engine
 from langchain_bot.sql_tools import get_database
 
-# Fixed scope to target Gmail send privileges specifically
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
-# Global thread-safe runtime cache for the active API resource
 _GMAIL_SERVICE = None
 
 def get_gmail_service() -> Any:
@@ -61,12 +58,13 @@ def initialize_gmail() -> bool:
 
 def is_gmail_available() -> bool:
     """Helper method for UI (Sidebar state checks)."""
-    return _GMAIL_SERVICE is not None
+    # return _GMAIL_SERVICE is not None
+    if _GMAIL_SERVICE is None:
+        return initialize_gmail()
+    return True
 
 def get_gmail_tools() -> List[BaseTool]:
     """Returns the single unified send_gmail_notification tool wrapper or an empty list if unavailable."""
-    if not is_gmail_available():
-        return []
     return [send_gmail_notification]
 
 @tool
@@ -101,11 +99,54 @@ def send_gmail_notification(user_email: str, email_type: str, subject: str, body
         engine = db._engine
         
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        with engine.connect() as connection:
+        with engine.begin() as connection:
+            user_row = connection.execute(
+                text("""
+                    SELECT id
+                    FROM users
+                    WHERE email = :email
+                    LIMIT 1
+                """),
+                {"email": user_email}
+            ).fetchone()
+
+            if not user_row:
+                return (
+                    f"Email was sent to {user_email}, "
+                    "but the email log could not be created: user not found."
+                )
+
             connection.execute(
-                "INSERT INTO email_logs (user_email, email_type, subject, timestamp) VALUES (:u, :t, :s, :ts)",
-                {"u": user_email, "t": email_type, "s": subject, "ts": timestamp}
+                text("""
+                    INSERT INTO email_logs
+                        (
+                            user_id,
+                            email,
+                            subject,
+                            body_preview,
+                            email_type,
+                            sent_at
+                        )
+                    VALUES
+                        (
+                            :user_id,
+                            :email,
+                            :subject,
+                            :body_preview,
+                            :email_type,
+                            :sent_at
+                        )
+                """),
+                {
+                    "user_id": user_row[0],
+                    "email": user_email,
+                    "subject": subject,
+                    "body_preview": body[:200],
+                    "email_type": email_type,
+                    "sent_at": timestamp,
+                }
             )
+
 
         return f"Successfully sent '{email_type}' notification email to {user_email} and logged to DB."
 

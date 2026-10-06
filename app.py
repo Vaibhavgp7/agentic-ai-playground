@@ -10,7 +10,10 @@ from langchain_bot.agent import get_agent
 from langchain_bot.rag_tool import initialize_vector_store
 import json
 from src.langchain_bot.agent import get_agent, get_thread_config, reset_agent
-from langchain_bot.gmail_tools import initialize_gmail, is_gmail_available
+from src.langchain_bot.gmail_tools import initialize_gmail, is_gmail_available
+
+from src.langchain_bot.context import SessionContext
+from src.langchain_bot.hitl_utils import handle_interrupt
 
 THREADS_FILE = None
 
@@ -42,6 +45,7 @@ def init_session():
     st.session_state.setdefault("conversation_id", None)
     st.session_state.setdefault("gmail_enabled", False)
 
+@st.fragment(run_every=2)
 def render_history():
     """Render the chat history."""
     config = get_thread_config(st.session_state.user_email, st.session_state.conversation_id)
@@ -55,11 +59,31 @@ def render_history():
                 st.markdown(msg.content)
     
 def chat_round(user_input):
-    """Handle a single round of chat."""
-    get_agent().invoke(
-        {"messages": [{"role": "user", "content": user_input}]},
-        config=get_thread_config(st.session_state.user_email, st.session_state.conversation_id)
+    """Handle a single round of chat injecting SessionContext definitions."""
+    # Construct the explicit context mapping structure matching requirements
+    ctx = SessionContext(
+        user_email=st.session_state.user_email,
+        conversation_id=st.session_state.conversation_id,
+        role=st.session_state.user_role or "customer"
     )
+    
+    thread_config = get_thread_config(st.session_state.user_email, st.session_state.conversation_id)
+    
+    # Run agent execution step pass framework block
+    result = get_agent().invoke(
+        {"messages": [{"role": "user", "content": user_input}]},
+        config=thread_config,
+        # --- INJECT CONTEXT AT RUNTIME BOUNDARY ---
+        context=ctx
+    )
+    
+    # Process hitl intercept mechanisms dynamically on output boundaries
+    full_thread_id = thread_config["configurable"]["thread_id"]
+    interrupt_msg = handle_interrupt(result, full_thread_id, st.session_state.user_email)
+    
+    if interrupt_msg:
+        st.session_state.setdefault("messages", []).append(AIMessage(content=interrupt_msg))
+
 
 def start_new_conversation():
     conversation_id = str(uuid4())
