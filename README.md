@@ -83,7 +83,7 @@ The existing render_history() function reads the latest checkpoint every 2 secon
 ---
 # Env format
 ```text
-OPENAI_API_KEY=your-key"
+OPENAI_API_KEY=your-key
 MODEL_NAME=gpt-5.4-mini
 MODEL_PROVIDER=openai
 CHECKPOINTS_DB_PATH=checkpoints.sqlite
