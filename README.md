@@ -1,69 +1,90 @@
-Implementation Notes
+# LangChain E-Commerce Support Agent
 
-In the db initialization script add table pending_actions creation
+An AI-powered e-commerce customer support application built with **LangChain 1.x, LangGraph, Streamlit, SQLite, ChromaDB, and Gmail**.
 
-1. Dynamic Prompt + SessionContext with SQL Database Toolkit
+The project has two Streamlit interfaces:
 
-SessionContext provides the authenticated customer's information, such as their email and role, to the agent at runtime.
+- Customer chat application
+- Admin dashboard for Human-in-the-Loop (HITL) approvals
 
-However, the SQL Database Toolkit does not automatically understand or enforce that context. Its SQL tools can query the database, but they do not inherently know:
+The main design is **agent-centric**: the Streamlit applications are thin UI layers while the LangChain agent handles SQL, RAG, Gmail, and business actions.
 
-which customer is authenticated,
+---
 
-which email must be used for customer-specific queries,
+## Features
 
-which tables/relationships should be used,
+- Customer login using email and password
+- Admin login
+- Multiple customer conversations using UUIDs
+- Persistent conversation state with a LangGraph SQLite checkpointer
+- SQL-based questions about orders, payments, returns, etc.
+- RAG-based e-commerce policy and FAQ questions
+- Order cancellation
+- Product return requests
+- Human approval before destructive actions
+- Admin approval/rejection of pending actions
+- Gmail confirmation notifications
+- Email logging in SQLite
+- LangChain middleware logging
+- Automatic customer UI refresh after HITL approval
 
-or that data must be restricted to the current customer.
+---
 
+## Project Structure
+
+```text
+project/
+│
+├── app.py
+├── app_admin.py
+├── ecommerce_setup.sql
+├── ecommerce.db
+├── .env
+├── credentials.json
+├── token.pickle
+│
+├── returns_policy.txt
+├── shipping_policy.txt
+├── faq_returns_and_cancellations.txt
+|
+└── src/
+    └── langchain_bot/
+        ├── __init__.py
+        ├── agent.py
+        ├── action_tools.py
+        ├── auth.py
+        ├── context.py
+        ├── db_init.py
+        ├── gmail_tools.py
+        ├── hitl_utils.py
+        ├── logging_middleware.py
+        ├── rag_tools.py
+        └── sql_tools.py
+```
+---
+## Implementation Notes
+
+- Dynamic Prompt + SessionContext with SQL Database Toolkit
+
+SessionContext provides the authenticated customer's information, such as their email and role, to the agent at runtime and the tools using ToolRuntime
+
+However, the prebuilt SQL Database Toolkit does not automatically understand or enforce that context.
 Therefore, a dynamic prompt is used to inject the current SessionContext into the agent's system instructions on every request.
 
-For example:
 
-Authenticated customer:
-Email: {context.user_email}
-Role: {context.role}
-
-Use the authenticated email for customer-specific queries.
-Never expose another customer's data.
-Inspect the database schema before writing SQL.
-
-So the responsibilities are:
-
-SessionContext → carries the runtime user information.
-
-Dynamic prompt → tells the LLM how to use that information safely when using the SQL toolkit.
-
-SQL Database Toolkit → actually performs the database operations.
-
-SessionContext alone is data; the dynamic prompt tells the model how that data must be applied.
-
-2. @st.fragment for HITL Result Updates
+- @st.fragment for HITL Result Updates
 
 The customer and admin applications run as separate Streamlit processes.
 
 When an admin approves a return/cancellation, the LangGraph checkpoint is updated, but the customer's browser does not automatically rerun.
 
-The existing render_history() function reads the latest checkpoint:
+The existing render_history() function reads the latest checkpoint every 2 seconds, to update the assitant response.
 
-@st.fragment(run_every=2)
-def render_history():
-    ...
-
-@st.fragment(run_every=2) causes only this part of the customer UI to rerun every two seconds.
-
-Therefore:
-
-Customer requests a return.
-
-HITL interrupts and waits for admin approval.
-
-Admin approves the action.
-
-The same conversation checkpoint is updated.
-
-The customer's fragment detects the updated checkpoint.
-
-The final assistant response appears automatically.
-
-This removes the need for the customer to manually refresh or log in again.
+---
+# Env format
+```text
+OPENAI_API_KEY=your-key"
+MODEL_NAME=gpt-5.4-mini
+MODEL_PROVIDER=openai
+CHECKPOINTS_DB_PATH=checkpoints.sqlite
+```

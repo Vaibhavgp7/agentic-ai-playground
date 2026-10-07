@@ -1,0 +1,599 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LangChain 1.x Capstone – E‑commerce Support Agent Specification</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top left, #eef2ff 0, #f9fafb 40%, #fdf2ff 100%);
+      color: #111827;
+    }
+    main {
+      max-width: 960px;
+      margin: 2rem auto 3rem;
+      padding: 2.5rem 2rem 3rem;
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.08),
+        0 0 0 1px rgba(148, 163, 184, 0.12);
+    }
+    h1 {
+      font-size: 2.2rem;
+      margin: 0 0 1.25rem;
+      letter-spacing: -0.03em;
+      text-align: center;
+      color: #0f172a;
+      padding: 1rem 1.5rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+      box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(148, 163, 184, 0.35);
+    }
+    h2 {
+      font-size: 1.6rem;
+      margin-top: 2.25rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid rgba(37, 99, 235, 0.18);
+      padding-bottom: 0.35rem;
+      color: #0f172a;
+    }
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 1.75rem;
+      color: #0f172a;
+    }
+    h4 {
+      font-size: 1.05rem;
+      margin-top: 1.25rem;
+      margin-bottom: 0.35rem;
+      color: #1e3a8a;
+    }
+    p {
+      margin: 0.5rem 0 0.75rem;
+    }
+    code {
+      font-family: "Fira Code", Menlo, Monaco, Consolas, "Courier New", monospace;
+      background-color: #f3f4ff;
+      padding: 0.12rem 0.3rem;
+      border-radius: 4px;
+      font-size: 0.95em;
+      color: #1d4ed8;
+    }
+    .note, .exercise {
+      padding: 0.9rem 1.1rem;
+      margin: 1rem 0 1.5rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      border: 1px solid transparent;
+    }
+    .note {
+      border-left: 4px solid #2563eb;
+      background: radial-gradient(circle at top left, #eff6ff 0, #e0f2fe 45%, #eef2ff 100%);
+      border-color: rgba(37, 99, 235, 0.4);
+      box-shadow:
+        0 10px 25px rgba(15, 23, 42, 0.08),
+        0 0 0 1px rgba(191, 219, 254, 0.9);
+    }
+    .exercise {
+      border-left: 4px solid #16a34a;
+      background: linear-gradient(135deg, #ecfdf3, #f0fdf4);
+      border-color: rgba(22, 163, 74, 0.4);
+    }
+    .exercise-title {
+      font-weight: 650;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.8rem;
+      color: #166534;
+    }
+    ol, ul {
+      padding-left: 1.4rem;
+    }
+    li {
+      margin: 0.25rem 0;
+    }
+    .small {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+    .diagram-section {
+      margin: 1.5rem 0 2rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      overflow-x: auto;
+    }
+    .diagram-section .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>LangChain 1.x Capstone – E‑commerce Support Agent</h1>
+
+  <div class="note">
+    <strong>Purpose of this document</strong>
+    <p class="small">
+      This document is the <strong>requirements and specification</strong> for your LangChain 1.x capstone project.
+      It describes what you must build (functional requirements), the target architecture (agent + tools),
+      data and persistence expectations, and non‑functional guidelines. Use it as your single source of truth
+      while designing and implementing the project.
+    </p>
+  </div>
+
+  <h2>1. Project Overview</h2>
+  <p>
+    You will build an <strong>AI‑powered customer support chatbot</strong> for a fictional e‑commerce application,
+    using <strong>LangChain 1.x</strong>, <strong>Streamlit</strong>, and an <strong>SQLite</strong> database.
+    The project must demonstrate:
+  </p>
+  <ul>
+    <li>A <strong>single conversational agent</strong> in LangChain 1.x that orchestrates all logic using tools.</li>
+    <li>A Streamlit UI for both <strong>customers</strong> and a simple <strong>admin</strong> view.</li>
+    <li>SQL‑backed queries and updates for orders, returns, tickets, and email logs.</li>
+    <li>A <strong>RAG component</strong> using ChromaDB for policy/FAQ questions.</li>
+    <li><strong>Persistent conversation state</strong> using a LangChain checkpointer (not SQL).</li>
+    <li><strong>Gmail integration</strong> for notifications: use LangChain’s <code>GmailToolkit</code> by default,
+      or optionally a <strong>Gmail MCP server</strong> via <code>langchain-mcp-adapters</code>.</li>
+    <li>Basic <strong>logging and observability</strong> via LangChain 1.x callbacks / middleware.</li>
+  </ul>
+
+  <h2>2. Roles and User Journeys</h2>
+
+  <h3>2.1 Customer</h3>
+  <p>A customer interacts with the system as follows:</p>
+  <ul>
+    <li>Logs in using <strong>email</strong> and password (for this project, plain‑text passwords are acceptable).</li>
+    <li>Starts a <strong>new conversation</strong> from the Streamlit UI (generates a new UUID conversation id).</li>
+    <li>Asks the chatbot questions about:
+      <ul>
+        <li>Orders, returns, payments, and general account queries (SQL‑backed).</li>
+        <li>Policies such as return rules, refund timelines, and shipping details (RAG‑backed).</li>
+      </ul>
+    </li>
+    <li>Requests <strong>order cancellation</strong> where allowed by business rules.</li>
+    <li>Requests a <strong>return</strong> for one or more items in an order.</li>
+    <li>Receives <strong>email notifications</strong> (via Gmail) when:
+      <ul>
+        <li>An order is cancelled.</li>
+        <li>A return request is created and a ticket is opened.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>2.2 Admin</h3>
+  <p>An admin has a simple management view:</p>
+  <ul>
+    <li>Logs in using a <strong>dummy admin email + password</strong> stored in the database.</li>
+    <li>Opens an admin Streamlit page to:
+      <ul>
+        <li>View <strong>all return tickets</strong> (PENDING / APPROVED / REJECTED).</li>
+        <li>Filter by status, customer email, or date (simple filters are sufficient).</li>
+        <li><strong>Approve, edit, or reject</strong> each return request.</li>
+      </ul>
+    </li>
+    <li>When acting on a ticket, the system should be able to:
+      <ul>
+        <li>Use the stored <strong>user email</strong> and <strong>conversation id (UUID)</strong> to
+          resume the original conversation thread in the checkpointer.</li>
+        <li>Let the agent use its tools to complete any follow‑up actions (e.g., update status, send emails).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="note">
+    <strong>Human‑in‑the‑loop</strong>
+    <p class="small">
+      The chatbot must <strong>not auto‑approve</strong> returns. It can only create a return + ticket and
+      inform the user that a human will review the request. The admin makes the final decision.
+    </p>
+  </div>
+
+  <h2>3. Functional Requirements</h2>
+
+  <h3>3.1 Authentication</h3>
+  <ul>
+    <li><strong>Customer login</strong> using <code>user_email</code> and password (plain‑text allowed for this lab).</li>
+    <li><strong>Admin login</strong> using a dummy admin email and password.</li>
+    <li><strong>user_email is the only user identifier</strong> you should use in your application logic and tools.</li>
+  </ul>
+
+  <h3>3.2 Customer Chatbot UI (Streamlit)</h3>
+  <ul>
+    <li>A login screen for email/password authentication.</li>
+    <li>After login, a chat screen with:
+      <ul>
+        <li>A button to <strong>start a new conversation</strong> (generates a new UUID <code>conversation_id</code>).</li>
+        <li>A visible chat history for the current conversation.</li>
+        <li>A text input for the next user message.</li>
+      </ul>
+    </li>
+    <li>On each message:
+      <ul>
+        <li>Call the <strong>single LangChain agent</strong>, passing
+          <code>user_email</code> and <code>conversation_id</code> so the checkpointer can load the correct state.</li>
+        <li>Render the agent’s response in the chat UI.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>3.3 Capabilities of the Chatbot</h3>
+  <ul>
+    <li><strong>Data questions (SQL):</strong>
+      <ul>
+        <li>“Show my last 5 orders.”</li>
+        <li>“What is the status of order #123?”</li>
+        <li>“List all my returned orders.”</li>
+        <li>“How much did I spend in the last month?”</li>
+      </ul>
+    </li>
+    <li><strong>Actions (SQL + business rules):</strong>
+      <ul>
+        <li>Cancel an order if allowed (status, dates, etc.).</li>
+        <li>Create a return request for order items and open a ticket.</li>
+      </ul>
+    </li>
+    <li><strong>Policy questions (RAG):</strong>
+      <ul>
+        <li>“What is your returns policy?”</li>
+        <li>“Within how many days can I return an item?”</li>
+        <li>“How long do refunds take?”</li>
+        <li>“Do I pay for return shipping?”</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>3.4 Admin Dashboard</h3>
+  <ul>
+    <li>Login page for admin email/password.</li>
+    <li>Dashboard listing:
+      <ul>
+        <li>All return tickets with status and key fields (subject, user email, order id, conversation id, timestamps).</li>
+        <li>Filters by status and (optionally) by user_email or date.</li>
+      </ul>
+    </li>
+    <li>Admin can approve, edit, or reject a return:
+      <ul>
+        <li>Updates the ticket and return status in the database via the agent’s SQL tools.</li>
+        <li>Should allow resuming the original conversation (via user_email + conversation_id) if you choose to show a
+          follow‑up message to the customer later.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. Agent and Tools (LangChain 1.x)</h2>
+
+  <h3>4.1 Single Main Agent</h3>
+  <ul>
+    <li>You must implement <strong>one main conversational agent</strong> using LangChain 1.x.</li>
+    <li>This agent is responsible for:
+      <ul>
+        <li>Interpreting every user/admin message.</li>
+        <li>Deciding which tools to call and in what order.</li>
+        <li>Combining SQL results, RAG outputs, and email operations into coherent responses.</li>
+      </ul>
+    </li>
+    <li>You should <strong>not</strong> create multiple cooperating agents for this project (that can be a later extension).</li>
+  </ul>
+
+  <h3>4.2 Tool 1 – SQL Toolkit (Business Database Operations)</h3>
+  <ul>
+    <li>Use LangChain 1.x SQL support (<code>SQLDatabase</code> + <code>SQLDatabaseToolkit</code> or equivalent).</li>
+    <li>Let the agent dynamically generate SQL to:
+      <ul>
+        <li>Query orders, order_items, payments, returns, tickets, and email_logs for a given <code>user_email</code>.</li>
+        <li>Create or update rows for returns and tickets, including storing <code>user_email</code> and
+          <code>conversation_id</code> on each ticket.</li>
+        <li>Apply business rules such as “order must be in PLACED/SHIPPED to be cancelled”.</li>
+      </ul>
+    </li>
+    <li>Do <strong>not</strong> write many manual helpers like <code>get_orders_for_user()</code>; rely on the toolkit.</li>
+  </ul>
+
+  <h3>4.3 Tool 2 – RAG Policy Search (<code>rag_policy_search</code>)</h3>
+  <ul>
+    <li>Implement a single custom RAG tool that:
+      <ul>
+        <li>Uses a ChromaDB retriever over:
+          <code>returns_policy.txt</code>, <code>shipping_policy.txt</code>,
+          <code>faq_returns_and_cancellations.txt</code>.</li>
+        <li>Accepts the user’s question as input.</li>
+        <li>Returns top‑k relevant chunks or a structured summary.</li>
+      </ul>
+    </li>
+    <li>Describe this tool so the agent understands it is for
+      <strong>policy/FAQ questions only</strong>, not for user‑specific data.</li>
+  </ul>
+
+  <h3>4.4 Tool 3 – Gmail Email Notification (<code>send_gmail_notification</code>)</h3>
+  <p>
+    Create a single custom tool <code>send_gmail_notification</code> that the agent calls whenever a
+    customer notification is needed (cancellation confirmed, return ticket created, or return status
+    updated). The agent should see <strong>one</strong> notification tool, regardless of which send
+    backend you use underneath.
+  </p>
+  <p>The tool must:</p>
+  <ul>
+    <li>Send an email to the customer’s <code>user_email</code> with a clear subject and body.</li>
+    <li>After a successful send, use the SQL toolkit to write a row into <code>email_logs</code>
+      with <code>user_email</code>, email type, subject, and timestamp.</li>
+    <li>On failure, log the error (via middleware) and tell the agent so it can inform the user
+      that the email could not be sent.</li>
+  </ul>
+  <p>
+    Implement the send path with <strong>one</strong> of the two backends below. Choose the backend
+    with a configuration switch such as <code>GMAIL_BACKEND=toolkit</code> (default) or
+    <code>GMAIL_BACKEND=mcp</code>. Document your choice in the README.
+  </p>
+
+  <h4>Option A (default) – LangChain <code>GmailToolkit</code></h4>
+  <ul>
+    <li>Use LangChain’s <code>GmailToolkit</code> (for example from
+      <code>langchain_google_community</code> / <code>langchain_community.agent_toolkits</code>)
+      as the send backend. This matches the Gmail HITL lab.</li>
+    <li>Wrap the toolkit’s send tool (e.g. <code>GmailSendMessage</code>) inside
+      <code>send_gmail_notification</code>. Do not expose the full toolkit (search, draft, trash)
+      to the support agent unless you have a clear reason.</li>
+    <li>Load Gmail OAuth credentials from environment variables and files such as
+      <code>credentials.json</code> / token storage — never hard‑code secrets.</li>
+  </ul>
+
+  <h4>Option B – Gmail MCP server</h4>
+  <ul>
+    <li>Connect to a <strong>Gmail MCP server</strong> using <code>langchain-mcp-adapters</code>
+      and <code>MultiServerMCPClient</code>, as taught in the MCP module.</li>
+    <li>Map the MCP server’s send tool (typically <code>send_email</code>) into
+      <code>send_gmail_notification</code> so the agent still has a single notification tool.</li>
+    <li>Do <strong>not</strong> dump every Gmail MCP tool (search, delete, labels, etc.) onto the
+      support agent. Notification send is the required capability.</li>
+    <li>Configure the MCP connection (stdio <code>command</code>/<code>args</code>, or a streamable
+      HTTP URL) via environment variables, not hard‑coded paths.</li>
+    <li>After a successful MCP send, still write <code>email_logs</code> via the SQL toolkit — MCP
+      does not replace the business database log.</li>
+  </ul>
+
+  <div class="note">
+    <strong>Backend choice</strong>
+    <p class="small">
+      <code>GmailToolkit</code> is the default and is enough to pass the capstone. Use the Gmail MCP
+      server if you want to practise wiring MCP tools into a LangChain 1.x agent. Either way, the
+      agent’s public tool remains <code>send_gmail_notification</code>, and every sent mail must
+      appear in <code>email_logs</code>.
+    </p>
+  </div>
+
+  <div class="note">
+    <strong>Key point</strong>
+    <p class="small">
+      Your <strong>agent + tools</strong> should handle almost all business logic.
+      Your Streamlit and service code should be thin wrappers that pass context to the agent and render its responses.
+    </p>
+  </div>
+
+  <h2>5. Data, Persistence, and Conversation Identity</h2>
+
+  <h3>5.1 SQLite Business Database</h3>
+  <p>
+    You will be given a ready‑made SQL script in the project directory
+    (for example, <code>ecommerce_setup.sql</code>) that creates an
+    <code>ecommerce.db</code> SQLite database with tables such as:
+  </p>
+  <ul>
+    <li><code>users</code> – stores <code>email</code>, <code>password</code>, <code>full_name</code>, and <code>role</code>.</li>
+    <li><code>products</code>, <code>orders</code>, <code>order_items</code>, <code>payments</code>.</li>
+    <li><code>returns</code> – stores per‑item returns with status PENDING/APPROVED/REJECTED.</li>
+    <li><code>tickets</code> – stores return tickets and includes:
+      <ul>
+        <li><code>user_email</code> – login email of the customer.</li>
+        <li><code>thread_id</code> (conversation UUID) – used to resume the correct conversation thread.</li>
+      </ul>
+    </li>
+    <li><code>email_logs</code> – stores emails sent (recipient, subject, type, timestamp).</li>
+  </ul>
+
+  <h3>5.2 Conversation State and Checkpointer</h3>
+  <ul>
+    <li>Use a <strong>persistent LangChain 1.x checkpointer</strong> (file/SQLite/other) to store conversation history.</li>
+    <li>Each conversation must be uniquely identified by:
+      <ul>
+        <li><code>user_email</code> – email used for login.</li>
+        <li><code>conversation_id</code> – a UUID generated when the user starts a new conversation.</li>
+      </ul>
+    </li>
+    <li>The pair <code>(user_email, conversation_id)</code> is the logical “thread id” you pass to the checkpointer.</li>
+    <li><strong>Do not</strong> store chat transcripts in SQL; SQL is for business data only.</li>
+  </ul>
+
+  <h2>6. RAG Knowledge Base</h2>
+  <p>
+    A small, curated policy knowledge base is provided as three text files in the project folder:
+  </p>
+  <ul>
+    <li><code>returns_policy.txt</code></li>
+    <li><code>shipping_policy.txt</code></li>
+    <li><code>faq_returns_and_cancellations.txt</code></li>
+  </ul>
+  <p>
+    You must load, chunk, and embed these documents into a ChromaDB collection and expose them via
+    the <code>rag_policy_search</code> tool described earlier. The agent should use this tool only for
+    policy/FAQ questions and continue to use SQL tools for user‑specific questions.
+  </p>
+
+  <h2>7. Logging and Observability</h2>
+  <ul>
+    <li>Implement logging using <strong>LangChain 1.x callbacks / middleware</strong>, not custom decorators.</li>
+    <li>Attach middleware to:
+      <ul>
+        <li>The main agent runnable.</li>
+        <li>SQL toolkit operations.</li>
+        <li>RAG tool and Gmail notification tool invocations (whether backed by
+          <code>GmailToolkit</code> or the Gmail MCP server).</li>
+      </ul>
+    </li>
+    <li>Each log entry should include:
+      <ul>
+        <li>Timestamp.</li>
+        <li><code>user_email</code> (if available).</li>
+        <li>Tool or action name.</li>
+        <li>Short summary of inputs (e.g., order id, return id).</li>
+        <li>Success / failure and any error messages.</li>
+      </ul>
+    </li>
+    <li>Write logs to <code>logs/app.log</code> using Python’s <code>logging</code> module.</li>
+  </ul>
+
+  <h2>8. Suggested Project Structure (Agent‑Centric)</h2>
+  <p>
+    You may adapt this structure, but keep your design agent‑centric:
+  </p>
+  <ul>
+    <li><code>pyproject.toml</code>, <code>uv.lock</code> – dependencies (Streamlit, LangChain 1.x, Chroma,
+      and either Gmail toolkit packages or <code>langchain-mcp-adapters</code> if you use MCP).</li>
+    <li><code>src/app_customer.py</code> – Streamlit app for customer chat.</li>
+    <li><code>src/app_admin.py</code> – Streamlit app for admin dashboard.</li>
+    <li><code>src/config.py</code> – configuration and environment loading.</li>
+    <li><code>src/auth.py</code> – simple login helpers using <code>user_email</code> and password.</li>
+    <li><code>src/agents.py</code> – single main agent, SQL toolkit, <code>rag_policy_search</code>, and
+      <code>send_gmail_notification</code>, plus checkpointer wiring.</li>
+    <li><code>src/gmail_backend.py</code> (optional) – select <code>GmailToolkit</code> or Gmail MCP
+      from <code>GMAIL_BACKEND</code> and return the send helper used by
+      <code>send_gmail_notification</code>.</li>
+    <li><code>src/logging_middleware.py</code> – LangChain callback / middleware definitions.</li>
+    <li><code>src/db_init.py</code> (optional) – helper to initialise <code>ecommerce.db</code> using the notebook logic.</li>
+    <li><code>logs/app.log</code> – log output from your middleware.</li>
+  </ul>
+
+  <h2>9. Non‑Functional Requirements and Expectations</h2>
+  <ul>
+    <li>Use <strong>uv</strong> to manage a clean Python environment and dependencies.</li>
+    <li>Do not hard‑code API keys, Gmail OAuth secrets, or MCP connection strings in code; use
+      environment variables and a <code>.env</code> / configuration layer
+      (including <code>GMAIL_BACKEND=toolkit</code> or <code>GMAIL_BACKEND=mcp</code>).</li>
+    <li>Document any simplifications (e.g., plain‑text passwords, minimal validation) clearly in your README.</li>
+    <li>Prioritise <strong>clarity, agent‑centric design, and correctness</strong> over adding many extra features.</li>
+  </ul>
+
+  <div class="exercise">
+    <div class="exercise-title">For Customers</div>
+    <p>
+      Read this specification carefully before you start coding. Sketch the architecture of your solution
+      (UI pages, single agent, tools, database, checkpointer, and logging) and get it approved by your instructor
+      if required. Then implement the system step‑by‑step, verifying that each requirement in this document
+      is satisfied by your design and code.
+    </p>
+  </div>
+
+  <h2>10. Application flow diagrams (customer vs admin)</h2>
+  <p class="small">
+    These diagrams summarize the <strong>end‑to‑end journey</strong> after a successful login for each role.
+    They align with an <strong>agent‑centric</strong> design: Streamlit is a thin shell; the
+    <strong>same main agent</strong> (LangChain&nbsp;1.x / LangGraph with tools + checkpointer) carries out SQL, RAG,
+    Gmail, and guarded actions. A typical lab layout runs the customer UI and admin UI as <strong>two Streamlit
+    processes</strong> (for example ports <code>8501</code> and <code>8502</code>). The logical conversation thread is
+    keyed by <code>user_email</code> and <code>conversation_id</code> (often composed into one checkpointer thread id).
+  </p>
+
+  <h3>10.1 Customer flow (after login)</h3>
+  <p class="small">
+    Customer authenticates against <code>users</code> in <code>ecommerce.db</code>, starts or selects a chat
+    (new <code>conversation_id</code> UUID when starting fresh), then each message invokes the agent with that thread
+    context. Read‑only questions use the SQL toolkit and/or <code>rag_policy_search</code>. Cancellations and returns
+    require human approval: the agent may notify by email, then pauses until an admin resumes the same thread.
+  </p>
+  <div class="diagram-section">
+    <div class="mermaid">
+flowchart TD
+  A[Customer opens chat app e.g. app.py] --> B[Login: email + password]
+  B --> C{Valid user in SQLite users?}
+  C -->|No| B
+  C -->|Yes; role customer| D[Session: user_email + conversation_id UUID]
+  D --> E{Start new conversation?}
+  E -->|Yes| F[New conversation_id]
+  E -->|No| G[Keep current thread]
+  F --> G
+  G --> H[User sends chat message]
+  H --> I[Invoke main agent with thread key user_email + conversation_id]
+  I --> J[Middleware logging]
+  J --> K{Agent chooses tools}
+  K -->|Policy / FAQ| L[rag_policy_search ChromaDB]
+  K -->|Orders, spend, status| M[SQL toolkit on ecommerce.db]
+  K -->|Cancel or return request| N[Gmail notify if needed then action tools]
+  L --> O[Assistant message]
+  M --> O
+  N --> P{Human-in-the-loop interrupt?}
+  P -->|Yes| Q[Persist pending ticket / pending action + thread reference]
+  P -->|No| R[Commit business updates e.g. order or return rows]
+  Q --> S[User sees pending human review message]
+  R --> O
+  S --> O
+  O --> T[Checkpointer saves conversation state not business chat in SQL]
+  T --> H
+    </div>
+  </div>
+
+  <h3>10.2 Admin flow (after login)</h3>
+  <p class="small">
+    Admin authenticates with an admin account in <code>users</code>, then uses a <strong>dashboard</strong>
+    (e.g. <code>app_admin.py</code>) to list open return/cancel work. Decisions <strong>resume</strong> the customer’s
+    paused agent thread so tools can finish SQL updates and confirmation emails; tickets and
+    <code>email_logs</code> reflect the outcome.
+  </p>
+  <div class="diagram-section">
+    <div class="mermaid">
+flowchart TD
+  A[Admin opens dashboard e.g. app_admin.py] --> B[Login: admin email + password]
+  B --> C{Valid user role admin?}
+  C -->|No| B
+  C -->|Yes| D[Load services e.g. RAG + Gmail for resumed agent]
+  D --> E[Query tickets / pending actions for PENDING items]
+  E --> F{Any items to review?}
+  F -->|No| G[Show empty queue; refresh when customers submit]
+  F -->|Yes| H[Show filters: status, customer email, date]
+  H --> I[Admin opens item: user_email, order, conversation/thread id]
+  I --> J{Decision}
+  J -->|Approve| K[Resume agent thread: approve]
+  J -->|Reject| L[Resume agent thread: reject]
+  J -->|Edit details| M[Apply edits then approve/reject via agent tools]
+  K --> N[Agent completes SQL updates returns tickets orders]
+  L --> N
+  M --> N
+  N --> O[Optional Gmail + write email_logs]
+  O --> P{Another interrupt on same thread?}
+  P -->|Yes| E
+  P -->|No| Q[Dashboard refreshes list]
+  Q --> E
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>How the two flows connect</strong>
+    <p class="small">
+      The customer chat and admin dashboard are separate UIs, but they coordinate through <strong>shared
+      persistence</strong>: business data in <code>ecommerce.db</code> (orders, returns, tickets, optional
+      <code>pending_actions</code>) and <strong>conversation state</strong> in the LangChain checkpointer using the
+      same thread identity the ticket stores (<code>user_email</code> and conversation UUID). That lets an admin
+      decision pick up exactly where the customer’s agent run paused.
+    </p>
+  </div>
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ theme: 'neutral', startOnLoad: false });
+  mermaid.run();
+</script>
+</body>
+</html>
+
+

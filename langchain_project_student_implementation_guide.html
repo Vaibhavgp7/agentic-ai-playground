@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LangChain 1.x Capstone – Student Implementation Guide</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top left, #eef2ff 0, #f9fafb 40%, #fdf2ff 100%);
+      color: #111827;
+    }
+    main {
+      max-width: 960px;
+      margin: 2rem auto 3rem;
+      padding: 2.5rem 2rem 3rem;
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(148, 163, 184, 0.12);
+    }
+    h1 {
+      font-size: 2.2rem; margin: 0 0 1.25rem; letter-spacing: -0.03em; text-align: center;
+      color: #0f172a; padding: 1rem 1.5rem; border-radius: 999px;
+      background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+    }
+    h2 { font-size: 1.6rem; margin-top: 2.25rem; border-bottom: 2px solid rgba(37, 99, 235, 0.18); padding-bottom: 0.35rem; color: #0f172a; }
+    h3 { font-size: 1.25rem; margin-top: 1.75rem; color: #0f172a; }
+    h4 { font-size: 1.05rem; margin-top: 1.25rem; color: #1e40af; }
+    p { margin: 0.5rem 0 0.75rem; }
+    code {
+      font-family: "Fira Code", Menlo, Monaco, Consolas, monospace;
+      background-color: #f3f4ff; padding: 0.12rem 0.3rem; border-radius: 4px; font-size: 0.95em; color: #1d4ed8;
+    }
+    pre {
+      background: #f8fafc; color: #1e293b; padding: 0.85rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-size: 0.85rem; margin: 0.75rem 0 1.25rem; border: 1px solid #e2e8f0;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+    .note, .exercise, .test-box, .warning, .run-box {
+      padding: 0.9rem 1.1rem; margin: 1rem 0 1.5rem; border-radius: 10px; font-size: 0.95rem;
+    }
+    .note { border-left: 4px solid #2563eb; background: #eff6ff; }
+    .exercise { border-left: 4px solid #16a34a; background: #ecfdf3; }
+    .test-box { border-left: 4px solid #f59e0b; background: #fffbeb; }
+    .run-box { border-left: 4px solid #7c3aed; background: #f5f3ff; }
+    .warning { border-left: 4px solid #dc2626; background: #fef2f2; }
+    .exercise-title, .test-title, .run-title {
+      font-weight: 650; margin-bottom: 0.25rem; text-transform: uppercase;
+      letter-spacing: 0.06em; font-size: 0.8rem;
+    }
+    .exercise-title { color: #166534; }
+    .test-title { color: #b45309; }
+    .run-title { color: #5b21b6; }
+    ol, ul { padding-left: 1.4rem; }
+    li { margin: 0.35rem 0; }
+    .small { font-size: 0.9rem; color: #4b5563; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid #e5e7eb; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+    th { background-color: #f3f4f6; font-weight: 600; }
+    .file-path { background: #fef3c7; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+    .step-number {
+      display: inline-block; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;
+      width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px;
+      font-weight: 600; font-size: 0.9rem; margin-right: 0.5rem;
+    }
+    .toc { background: #f8fafc; border-radius: 10px; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+    .toc h3 { margin-top: 0; color: #1e40af; }
+    .toc a { color: #2563eb; text-decoration: none; }
+    .why-label { font-weight: 600; color: #1e40af; }
+    kbd { background: #e5e7eb; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.85em; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>LangChain 1.x Capstone – Student Implementation Guide</h1>
+  <p style="text-align: center; color: #6b7280; margin-bottom: 2rem;">
+    Build incrementally — understand <em>why</em>, follow detailed steps, <strong>run and test</strong> before continuing
+  </p>
+
+  <div class="note">
+    <strong>How this guide works</strong>
+    <ul class="small">
+      <li>Read <code>langchain_project_specification.html</code> first for requirements.</li>
+      <li>Each step has: <span class="why-label">Why</span> (the reason), <strong>What to do</strong> (detailed actions), and <strong>Run &amp; observe</strong> (commands + what you should see).</li>
+      <li><strong>Do not paste entire files.</strong> Build one small piece, save, run the check, then continue.</li>
+      <li>When Streamlit is running, stop with <kbd>Ctrl+C</kbd>, restart after edits: <code>python -m uv run streamlit run app.py</code></li>
+      <li>Optional syntax check anytime: <code>python -m py_compile app.py</code></li>
+    </ul>
+  </div>
+
+  <div class="toc">
+    <h3>Table of Contents</h3>
+    <ol class="small">
+      <li><a href="#step1">Initialize project with uv</a></li>
+      <li><a href="#step2">Add dependencies &amp; .env</a></li>
+      <li><a href="#step3">Streamlit UI scaffold</a></li>
+      <li><a href="#step4">Chat prompt template &amp; chain</a></li>
+      <li><a href="#step5">Project structure &amp; database init</a></li>
+      <li><a href="#step6">Login &amp; conversation_id</a></li>
+      <li><a href="#step7">Copy policy files for RAG</a></li>
+      <li><a href="#step8">RAG policy search tool</a></li>
+      <li><a href="#step9">Create agent with RAG tool</a></li>
+      <li><a href="#step10">Wire app.py to the agent</a></li>
+      <li><a href="#step11">Checkpointer &amp; agent.get_state</a></li>
+      <li><a href="#step12">Logging middleware</a></li>
+      <li><a href="#step13">SQL Database Toolkit</a></li>
+      <li><a href="#step14">Gmail tools (OAuth)</a></li>
+      <li><a href="#step15">Human-in-the-loop &amp; Admin dashboard</a></li>
+      <li><a href="#checklist">Final submission checklist</a></li>
+    </ol>
+  </div>
+
+  <!-- STEP 1 -->
+  <h2 id="step1"><span class="step-number">1</span> Initialize the project with uv</h2>
+
+  <p><span class="why-label">Why:</span> You need an isolated Python environment and a standard project layout before adding Streamlit or LangChain. <code>uv</code> creates <code>pyproject.toml</code> and a virtual environment so dependencies stay reproducible.</p>
+
+  <h4>1.1 — Install uv</h4>
+  <p><strong>What to do:</strong> Open a terminal and install <code>uv</code> with the official installer. Do <strong>not</strong> use pip. After it finishes, close the terminal and open a new one so <code>uv</code> is on your PATH.</p>
+  <pre><code># Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh</code></pre>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>uv --version</code></pre>
+    <p class="small">You should see a version string (e.g. <code>uv 0.x.x</code>). If the command fails, reopen the terminal and try again before continuing.</p>
+  </div>
+
+  <h4>1.2 — Create the project folder</h4>
+  <p><strong>What to do:</strong> Choose a parent folder (e.g. <code>C:\projects</code>). Run <code>uv init langchain-bot</code>. Change directory into <code>langchain-bot</code>.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>dir</code></pre>
+    <p class="small">On Windows you should see at least <code>pyproject.toml</code>, <code>main.py</code>, and <code>README.md</code>.</p>
+  </div>
+
+  <div class="test-box">
+    <div class="test-title">Step 1 complete — checkpoint</div>
+    <pre><code>uv run python --version</code></pre>
+    <p>✅ Python runs inside the uv-managed environment. Proceed to Step 2.</p>
+  </div>
+
+  <!-- STEP 2 -->
+  <h2 id="step2"><span class="step-number">2</span> Add dependencies &amp; .env</h2>
+
+  <p><span class="why-label">Why:</span> The capstone uses Streamlit (UI), LangChain 1.x (agent), Chroma (RAG), SQLite checkpointer, SQL toolkit, and Gmail. Installing everything now avoids mid-project import errors.</p>
+
+  <h4>2.1 — Add packages</h4>
+  <p><strong>What to do:</strong> From the project root, run one <code>uv add</code> command with all packages:</p>
+  <pre><code>python -m uv add streamlit langchain langchain-openai openai python-dotenv langgraph langgraph-checkpoint-sqlite langchain-community chromadb langchain-text-splitters google-auth-oauthlib google-auth-httplib2 google-api-python-client</code></pre>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "import streamlit, langchain; print('OK')"</code></pre>
+    <p class="small">Should print <code>OK</code>. If any import fails, re-run the <code>uv add</code> line.</p>
+  </div>
+
+  <h4>2.2 — Create .env</h4>
+  <p><strong>What to do:</strong> In the project root, create a file named <code>.env</code> (same folder as <code>pyproject.toml</code>). Add your OpenAI key:</p>
+  <pre><code>OPENAI_API_KEY=sk-your-key-here
+CHECKPOINTS_DB_PATH=checkpoints.sqlite</code></pre>
+  <p class="small"><span class="why-label">Why CHECKPOINTS_DB_PATH:</span> Later steps store LangGraph conversation state in a SQLite file; this env var lets you change the path without editing code.</p>
+
+  <h4>2.3 — Protect secrets</h4>
+  <p><strong>What to do:</strong> Create or edit <code>.gitignore</code>. Add lines for <code>.env</code>, <code>credentials.json</code>, <code>token.pickle</code>, <code>*.db</code>, <code>chroma_db/</code>, <code>chat_threads.json</code> if you plan to use git.</p>
+
+  <div class="test-box">
+    <div class="test-title">Step 2 complete — checkpoint</div>
+    <pre><code>python -m uv run python -c "from dotenv import load_dotenv; import os; load_dotenv(); print('key set' if os.getenv('OPENAI_API_KEY') else 'MISSING')"</code></pre>
+    <p>✅ Should print <code>key set</code>. ❌ If <code>MISSING</code>, check <code>.env</code> filename and location.</p>
+  </div>
+
+  <!-- STEP 3 -->
+  <h2 id="step3"><span class="step-number">3</span> Streamlit UI scaffold</h2>
+
+  <p><span class="why-label">Why:</span> Before agents and tools, you need a working chat shell: display history, accept input, call the model. This proves OpenAI + Streamlit + dotenv work together.</p>
+
+  <p><strong>File:</strong> Create empty <span class="file-path">app.py</span> in the project root. Add the pieces below <strong>in order</strong>. Save after each sub-step.</p>
+
+  <h4>3.1 — Imports</h4>
+  <p><strong>What to do:</strong> At the top of <span class="file-path">app.py</span>, import:</p>
+  <ul>
+    <li><code>streamlit as st</code></li>
+    <li><code>load_dotenv</code> from <code>dotenv</code></li>
+    <li><code>ChatOpenAI</code> from <code>langchain_openai</code></li>
+    <li><code>AIMessage</code>, <code>HumanMessage</code> from <code>langchain_core.messages</code></li>
+  </ul>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m py_compile app.py</code></pre>
+    <p class="small">No output = syntax OK.</p>
+  </div>
+
+  <h4>3.2 — <code>get_llm()</code></h4>
+  <p><span class="why-label">Why:</span> Centralizes model name and temperature so you change them in one place later.</p>
+  <p><strong>What to do:</strong> Add a function that returns <code>ChatOpenAI(model="gpt-4.1-mini", temperature=0.3)</code> (or similar mini model your course uses).</p>
+
+  <h4>3.3 — <code>init_session()</code></h4>
+  <p><span class="why-label">Why:</span> Streamlit reruns the whole script on every click. <code>st.session_state</code> keeps chat history across reruns.</p>
+  <p><strong>What to do:</strong> If <code>"messages"</code> is not in session state, set it to a list containing one <code>AIMessage</code> with a short greeting (e.g. "Hi! Ask me anything.").</p>
+
+  <h4>3.4 — <code>render_history()</code></h4>
+  <p><span class="why-label">Why:</span> Converts stored LangChain messages into visible chat bubbles.</p>
+  <p><strong>What to do:</strong> Loop over <code>st.session_state.messages</code>. For each message, decide role: <code>"user"</code> if it is a <code>HumanMessage</code>, else <code>"assistant"</code>. Use <code>st.chat_message(role)</code> and <code>st.markdown(msg.content)</code>.</p>
+
+  <h4>3.5 — <code>chat_round(llm, user_input)</code></h4>
+  <p><span class="why-label">Why:</span> One turn = append user text, call model with <em>full</em> history, append assistant reply.</p>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Append <code>HumanMessage(content=user_input)</code> to <code>messages</code>.</li>
+    <li>Call <code>response = llm.invoke(st.session_state.messages)</code>.</li>
+    <li>Append <code>response</code> to <code>messages</code>.</li>
+  </ol>
+
+  <h4>3.6 — <code>main()</code></h4>
+  <p><span class="why-label">Why:</span> Wires the Streamlit page: config, dotenv, session, history, input, one LLM round, rerun.</p>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li><code>st.set_page_config(page_title="LangChain Bot", page_icon="🤖")</code></li>
+    <li><code>load_dotenv()</code></li>
+    <li>Call <code>init_session()</code> then <code>render_history()</code></li>
+    <li><code>prompt = st.chat_input("Ask a question")</code></li>
+    <li>If <code>prompt</code> is truthy: get LLM, show spinner inside <code>st.chat_message("assistant")</code>, call <code>chat_round(llm, prompt)</code>, then <code>st.rerun()</code></li>
+  </ol>
+
+  <h4>3.7 — Entry point</h4>
+  <p><strong>What to do:</strong> At the bottom: <code>if __name__ == "__main__": main()</code></p>
+
+  <div class="test-box">
+    <div class="test-title">Step 3 complete — checkpoint</div>
+    <pre><code>python -m uv run streamlit run app.py</code></pre>
+    <ol>
+      <li>Browser opens at http://localhost:8501</li>
+      <li>You see the greeting message</li>
+      <li>Type <strong>Hello</strong> — assistant responds (uses your API key)</li>
+    </ol>
+    <p>❌ API errors → check <code>.env</code>. ✅ Proceed to Step 4.</p>
+  </div>
+
+  <!-- STEP 4 -->
+  <h2 id="step4"><span class="step-number">4</span> Chat prompt template &amp; chain</h2>
+
+  <p><span class="why-label">Why:</span> Raw <code>llm.invoke(messages)</code> has no system instruction slot. A <code>ChatPromptTemplate</code> + LCEL chain (<code>prompt | llm</code>) lets you add a fixed system message and a <code>MessagesPlaceholder</code> for history — the pattern agents use later.</p>
+
+  <p><strong>Keep unchanged from Step 3:</strong> <code>get_llm</code>, <code>init_session</code>, <code>render_history</code>, entry point.</p>
+
+  <h4>4.1 — Imports</h4>
+  <p><strong>What to do:</strong> Add <code>ChatPromptTemplate</code> and <code>MessagesPlaceholder</code> from <code>langchain_core.prompts</code>.</p>
+
+  <h4>4.2 — <code>build_chain(llm)</code> (new function)</h4>
+  <p><strong>What to do:</strong> Insert after <code>get_llm()</code>, before <code>init_session()</code>.</p>
+  <ol>
+    <li>Build a template with three parts in order:
+      <ul>
+        <li>System: e.g. "You are a concise, helpful assistant. Use prior chat history to stay on context."</li>
+        <li><code>MessagesPlaceholder(variable_name="history")</code></li>
+        <li>Human template with placeholder <code>{input}</code></li>
+      </ul>
+    </li>
+    <li>Return <code>prompt | llm</code> (LCEL chain).</li>
+  </ol>
+
+  <h4>4.3 — Replace <code>chat_round()</code></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Still append the user <code>HumanMessage</code> first.</li>
+    <li>Build chain with <code>build_chain(llm)</code>.</li>
+    <li>Invoke with a dict: <code>{"input": user_input, "history": st.session_state.messages}</code>.</li>
+    <li>Append the returned AIMessage to <code>messages</code>.</li>
+  </ol>
+
+  <h4>4.4 — Update <code>main()</code></h4>
+  <p><strong>What to do:</strong> Immediately after <code>set_page_config</code>, add <code>st.title("LangChain Bot")</code> and a short <code>st.caption(...)</code> so the page is clearly labeled.</p>
+
+  <div class="test-box">
+    <div class="test-title">Step 4 complete — checkpoint</div>
+    <p>Restart Streamlit. Then in the browser:</p>
+    <ol>
+      <li>Ask: <strong>"What is Python?"</strong></li>
+      <li>Ask: <strong>"Tell me more about it"</strong></li>
+      <li>Bot should continue the topic (context preserved via <code>MessagesPlaceholder</code>)</li>
+    </ol>
+    <p>❌ If context is lost, check that <code>history</code> in <code>chain.invoke</code> includes prior messages.</p>
+  </div>
+
+  <!-- STEP 5 -->
+  <h2 id="step5"><span class="step-number">5</span> Project structure &amp; database initialization</h2>
+
+  <p><span class="why-label">Why:</span> The agent will query real e-commerce data (users, orders, returns). You need <code>ecommerce.db</code> seeded from SQL, and code under <code>src/langchain_bot/</code> importable as a package.</p>
+
+  <h4>5.1 — Copy seed SQL</h4>
+  <p><strong>What to do:</strong> Copy <code>ecommerce_setup.sql</code> from course materials into the project root (next to <span class="file-path">app.py</span>).</p>
+
+  <h4>5.2 — Create package folder</h4>
+  <p><strong>What to do:</strong> Create <code>src/langchain_bot/</code> and an empty <code>__init__.py</code> (or a one-line docstring).</p>
+
+  <h4>5.3 — Create <span class="file-path">src/langchain_bot/db_init.py</span></h4>
+  <p><strong>What to do — block by block:</strong></p>
+  <ol>
+    <li><strong>Paths:</strong> Use <code>Path(__file__).resolve().parents[2]</code> as project root. Define <code>DB_PATH = root / "ecommerce.db"</code> and <code>SQL_SEED_PATH = root / "ecommerce_setup.sql"</code>.</li>
+    <li><strong><code>init_database()</code>:</strong> Ensure parent folder exists; read SQL file as UTF-8 text; open SQLite connection to <code>DB_PATH</code>; run <code>executescript</code>; commit; return <code>DB_PATH</code>.</li>
+    <li><strong>CLI:</strong> <code>main()</code> calls init and prints the path; <code>if __name__ == "__main__": main()</code>.</li>
+  </ol>
+
+  <h4>5.4 — Edit <code>pyproject.toml</code></h4>
+  <p><span class="why-label">Why:</span> Python cannot import <code>langchain_bot</code> until the src layout is declared for the installer.</p>
+  <p><strong>What to do:</strong> Add (merge with existing content, keep your <code>[project]</code> deps):</p>
+  <pre><code>[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+packages = ["src/langchain_bot"]</code></pre>
+
+  <h4>5.5 — Editable install</h4>
+  <pre><code>python -m uv run pip install -e .</code></pre>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "import langchain_bot; print('package OK')"</code></pre>
+  </div>
+
+  <h4>5.6 — Seed the database</h4>
+  <pre><code>python -m uv run python -m langchain_bot.db_init</code></pre>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "import sqlite3; print(sqlite3.connect('ecommerce.db').execute('SELECT email, role FROM users').fetchall())"</code></pre>
+    <p class="small">Expect customer and admin rows, e.g. <code>sivaprasad.valluru@gmail.com</code>, <code>bob@example.com</code>, <code>admin@example.com</code>.</p>
+  </div>
+
+  <div class="test-box">
+    <div class="test-title">Step 5 complete — checkpoint</div>
+    <ul>
+      <li>File <code>ecommerce.db</code> exists in project root</li>
+      <li><code>import langchain_bot</code> works</li>
+      <li>Streamlit chat from Step 4 still runs (unchanged)</li>
+    </ul>
+  </div>
+
+  <!-- STEP 6 -->
+  <h2 id="step6"><span class="step-number">6</span> Login &amp; conversation_id</h2>
+
+  <p><span class="why-label">Why:</span> The specification requires login by email. Each chat thread needs a UUID <code>conversation_id</code> so later the checkpointer and tickets can reference the correct conversation. Build the UI in small slices and test after each slice.</p>
+  <div class="note">
+    <strong>Do not store chat transcripts in SQL.</strong>
+    <p class="small">The spec keeps business data in <code>ecommerce.db</code> and conversation state in the LangChain checkpointer. Session state is enough for this step. In Step 11 you will load history with <code>agent.get_state(config)</code> — the same pattern as <code>03-02streamlit-chatbot-memory.html</code>.</p>
+  </div>
+
+  <h4>6.1 — Create <span class="file-path">src/langchain_bot/auth.py</span></h4>
+  <p><span class="why-label">Why:</span> Keeps SQL login logic out of Streamlit; admin and customer apps will reuse it.</p>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Define <code>UserRecord</code> as a <code>TypedDict</code> with <code>email</code>, <code>full_name</code>, <code>role</code>.</li>
+    <li>Implement <code>authenticate_user(email, password, role=None)</code>:
+      <ul>
+        <li>Resolve <code>ecommerce.db</code> path (same <code>parents[2]</code> pattern as <code>db_init.py</code>).</li>
+        <li>Query: <code>SELECT email, full_name, role FROM users WHERE email = ? AND password = ?</code> with parameterized values.</li>
+        <li>If <code>role</code> is passed, add <code>AND role = ?</code>.</li>
+        <li>Return a dict or <code>None</code> if no row.</li>
+      </ul>
+    </li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "from langchain_bot.auth import authenticate_user; print(authenticate_user('admin@example.com','admin123','admin'))"</code></pre>
+    <p class="small">Should print a dict with email, full_name, role — not <code>None</code>.</p>
+  </div>
+
+  <h4>6.2 — Edit <span class="file-path">app.py</span> (seven sub-steps — test UI after 6.2.3, 6.2.4, 6.2.5, 6.2.6)</h4>
+
+  <p><strong>6.2.1 — Imports</strong></p>
+  <p>Add <code>from uuid import uuid4</code> and <code>from langchain_bot.auth import authenticate_user</code>.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Restart Streamlit — chat should still work anonymously (Step 4 behavior) until you replace <code>main</code> in 6.2.3.</p>
+  </div>
+
+  <p><strong>6.2.2 — Replace <code>init_session()</code></strong></p>
+  <p><span class="why-label">Why:</span> Track login state and room for multiple threads.</p>
+  <p>Use <code>setdefault</code> for: <code>conversations</code> (dict), <code>messages</code> (list), <code>user_email</code>, <code>user_role</code>, <code>conversation_id</code> — all starting empty/None except empty dict/list.</p>
+
+  <p><strong>6.2.3 — Replace <code>main()</code> part 1 (login + sidebar placeholder)</strong></p>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>After <code>init_session()</code>, read <code>user_email</code> from session state.</li>
+    <li>If not logged in: show a <code>st.form</code> with email, password, role selectbox (customer/admin), Login button. On submit, call <code>authenticate_user</code>. On success, store email/role in session state, show success, <code>st.rerun()</code>. On failure, show error. Then <code>return</code> (do not show chat yet).</li>
+    <li>If logged in: sidebar with header "Conversations" and a <code>selectbox</code> — if no threads yet, use a placeholder label like "(no threads yet)".</li>
+    <li>Main area: <code>st.info</code> showing logged-in email, role, and conversation id (or "—" if none).</li>
+    <li>Keep <code>render_history()</code> and <code>chat_input</code> + Step 4 <code>chat_round</code> for now.</li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Log in as <code>sivaprasad.valluru@gmail.com</code> / <code>siva@123</code> (customer). You should see login form → then sidebar + info line. Chat still works as one list. Conversation ID shows "—".</p>
+  </div>
+
+  <p><strong>6.2.4 — Add <code>start_new_conversation()</code></strong></p>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Generate <code>conversation_id = str(uuid4())</code>.</li>
+    <li>Set <code>messages</code> to a new list with one assistant greeting AIMessage.</li>
+    <li>Store copy in <code>conversations[conversation_id]</code>.</li>
+    <li>In sidebar: add button "Start new conversation" that calls this function and reruns.</li>
+    <li>Update selectbox to list real UUIDs when they exist (switching still does nothing until 6.2.5).</li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Click "Start new conversation" — info line shows a UUID. Create two threads — two ids in dropdown. Changing dropdown does not switch chat yet.</p>
+  </div>
+
+  <p><strong>6.2.5 — Add <code>load_conversation(conv_id)</code> + wire selectbox</strong></p>
+  <p><strong>What to do:</strong> If <code>conv_id</code> is in <code>conversations</code>, set active <code>conversation_id</code> and copy that thread's messages into <code>messages</code>. In sidebar, when user picks a different id from selectbox, call <code>load_conversation</code> and rerun.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Chat different text in two threads; switch dropdown — visible history should change.</p>
+  </div>
+
+  <p><strong>6.2.6 — Upgrade <code>chat_round()</code></strong></p>
+  <p><strong>What to do:</strong> After appending the assistant reply, if <code>conversation_id</code> is set, update <code>conversations[conversation_id]</code> with a copy of the full <code>messages</code> list.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Send a message in thread A, switch to thread B and back — new message still visible in A.</p>
+  </div>
+
+  <p><strong>6.2.7 — First thread on login</strong></p>
+  <p><strong>What to do:</strong> In the login success block, after setting email/role, call <code>start_new_conversation()</code> before <code>st.success</code>.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Fresh login — greeting and UUID appear without clicking "Start new conversation".</p>
+  </div>
+
+  <div class="test-box">
+    <div class="test-title">Step 6 complete — checkpoint</div>
+    <p><strong>Seeded users:</strong></p>
+    <ul class="small">
+      <li><code>sivaprasad.valluru@gmail.com / siva@123</code> (customer)</li>
+      <li><code>bob@example.com / bob123</code> (customer)</li>
+      <li><code>admin@example.com / admin123</code> (admin)</li>
+    </ul>
+    <p>✅ Login, multi-thread sidebar, per-thread history in session. Proceed to Step 7.</p>
+  </div>
+
+  <!-- STEP 7 -->
+  <h2 id="step7"><span class="step-number">7</span> Copy policy files for RAG</h2>
+
+  <p><span class="why-label">Why:</span> Policy answers must come from curated documents (RAG), not from the model's memory or SQL. These three files are your knowledge base.</p>
+
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Create folder <code>policies/</code> in project root.</li>
+    <li>Copy from course materials: <code>returns_policy.txt</code>, <code>shipping_policy.txt</code>, <code>faq_returns_and_cancellations.txt</code>.</li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>dir policies</code></pre>
+    <p class="small">Three <code>.txt</code> files listed. Open one — readable policy text.</p>
+  </div>
+
+  <!-- STEP 8 -->
+  <h2 id="step8"><span class="step-number">8</span> RAG policy search tool</h2>
+
+  <p><span class="why-label">Why:</span> The agent needs a tool that retrieves relevant policy chunks from ChromaDB. Building the index once and reusing it on disk keeps startup fast.</p>
+
+  <p><strong>File:</strong> Create <span class="file-path">src/langchain_bot/rag_tool.py</span> in order §8.1 → §8.6.</p>
+
+  <h4>8.1 — Imports + module cache</h4>
+  <p><strong>What to do:</strong> Import Path, LangChain <code>@tool</code>, TextLoader, Chroma, Document, OpenAIEmbeddings, RecursiveCharacterTextSplitter. Add module variable <code>_vector_store = None</code> (singleton cache).</p>
+
+  <h4>8.2 — <code>load_policy_documents()</code></h4>
+  <p><strong>What to do:</strong> Resolve <code>policies/</code> at project root (<code>parent.parent.parent</code> from this file). Glob <code>*.txt</code>. For each file, TextLoader load, set <code>metadata["source"]</code> to filename, extend a documents list. Return all documents.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "from langchain_bot.rag_tool import load_policy_documents; print(len(load_policy_documents()))"</code></pre>
+    <p class="small">Count should be ≥ 3 (one doc per file minimum).</p>
+  </div>
+
+  <h4>8.3 — <code>split_documents(documents)</code></h4>
+  <p><span class="why-label">Why:</span> Whole files are too large for precise retrieval; chunks match user questions better.</p>
+  <p><strong>What to do:</strong> RecursiveCharacterTextSplitter with chunk_size ~800, overlap ~150. Return split documents.</p>
+
+  <h4>8.4 — <code>get_vector_store()</code></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>If <code>_vector_store</code> already set, return it (<code>global</code> assignment when creating).</li>
+    <li>Persist dir = project root / <code>chroma_db</code>.</li>
+    <li>Embeddings = OpenAIEmbeddings (e.g. text-embedding-3-small).</li>
+    <li>If <code>chroma_db</code> exists and non-empty → open existing Chroma.</li>
+    <li>Else → load policies, split, <code>Chroma.from_documents</code>, persist, cache instance.</li>
+    <li>Print short status lines so you see "Loading" vs "Loaded existing".</li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "from langchain_bot.rag_tool import get_vector_store; get_vector_store(); print('done')"</code></pre>
+    <p class="small">First run: may take ~1 min, creates <code>chroma_db/</code>. Second run: should say loaded existing.</p>
+  </div>
+
+  <h4>8.5 — <code>@tool search_policies(query: str)</code></h4>
+  <p><strong>What to do:</strong> Docstring must say: for policy/FAQ only, not user orders. Call <code>get_vector_store()</code>, similarity_search with top k (e.g. 4), format chunks with source labels into one string return value.</p>
+
+  <h4>8.6 — <code>initialize_vector_store()</code> + exports</h4>
+  <p><strong>What to do:</strong> Public function that calls <code>get_vector_store()</code> for app startup. Export tool and initializer in <code>__all__</code>.</p>
+
+  <div class="test-box">
+    <div class="test-title">Step 8 complete — checkpoint</div>
+    <pre><code>python -m uv run python -c "from langchain_bot.rag_tool import search_policies; print(search_policies.invoke({'query':'return window'})[:200])"</code></pre>
+    <p>✅ Non-empty text about returns. Proceed to Step 9.</p>
+  </div>
+
+  <!-- STEP 9 -->
+  <h2 id="step9"><span class="step-number">9</span> Create agent with RAG tool</h2>
+
+  <p><span class="why-label">Why:</span> The specification requires one main LangChain 1.x agent that chooses tools. Start with only RAG before adding SQL/Gmail.</p>
+
+  <p><strong>File:</strong> Create <span class="file-path">src/langchain_bot/agent.py</span></p>
+
+  <h4>9.1 — Imports</h4>
+  <p><code>create_agent</code> from langchain.agents, ChatOpenAI, <code>search_policies</code> from rag_tool, load_dotenv + call it.</p>
+
+  <h4>9.2 — <code>create_support_agent()</code></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>LLM: e.g. gpt-4o-mini, temperature ~0.2.</li>
+    <li>Tools list: <code>[search_policies]</code> only for now.</li>
+    <li>System prompt: explain role as e-commerce support; list when to use search_policies (returns, shipping, refunds, cancellation policy); answer from tool results; no tool for simple greetings.</li>
+    <li>Return <code>create_agent(model=..., tools=..., system_prompt=...)</code>.</li>
+  </ol>
+
+  <h4>9.3 — Singleton <code>get_agent()</code></h4>
+  <p><span class="why-label">Why:</span> Building the agent repeatedly is slow; one instance per process is enough.</p>
+  <p><strong>What to do:</strong> Module-level <code>_agent = None</code>. <code>get_agent()</code> creates on first call, returns cached agent.</p>
+
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "from langchain_bot.agent import create_support_agent; a=create_support_agent(); print(type(a))"</code></pre>
+    <p class="small">Prints agent/graph type without error.</p>
+  </div>
+
+  <div class="test-box">
+    <div class="test-title">Step 9 complete — checkpoint</div>
+    <p>Agent factory works. Step 10 connects it to Streamlit.</p>
+  </div>
+
+  <!-- STEP 10 -->
+  <h2 id="step10"><span class="step-number">10</span> Wire app.py to the agent</h2>
+
+  <p><span class="why-label">Why:</span> The UI must call the agent (with tools) instead of the simple chain so policy questions trigger RAG.</p>
+
+  <h4>10.1 — Imports + session flag</h4>
+  <p><strong>What to do:</strong> Import <code>get_agent</code>, <code>initialize_vector_store</code>. In <code>init_session</code>, <code>setdefault("vector_store_ready", False)</code>.</p>
+
+  <h4>10.2 — Initialize vector store in <code>main()</code></h4>
+  <p><strong>What to do:</strong> Early in <code>main()</code> (before login/chat), if not <code>vector_store_ready</code>, show spinner "Initializing knowledge base...", call <code>initialize_vector_store()</code>, set flag True, or show error and <code>st.stop()</code>.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <p>Restart Streamlit — first load may show spinner; second load should be fast.</p>
+  </div>
+
+  <h4>10.3 — Replace <code>chat_round()</code></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Remove <code>llm</code> parameter — use agent instead.</li>
+    <li>Append user HumanMessage to session (temporary UI history until Step 11).</li>
+    <li>Build messages list for agent: convert session messages to <code>{"role":"user"|"assistant","content":...}</code> dicts.</li>
+    <li><code>result = get_agent().invoke({"messages": messages})</code></li>
+    <li>Extract last message content; fallback string if empty.</li>
+    <li>Append AIMessage to session; update the in-memory <code>conversations</code> dict (IDs + messages in session only — no database).</li>
+  </ol>
+  <p>Update <code>main()</code> chat_input handler to call <code>chat_round(prompt)</code> without passing llm.</p>
+
+  <div class="test-box">
+    <div class="test-title">Step 10 complete — checkpoint</div>
+    <p>Log in as customer. Ask:</p>
+    <ol>
+      <li><strong>"What is your returns policy?"</strong> — detailed answer from documents</li>
+      <li><strong>"How long do I have to return an item?"</strong> — specific days/timeframe</li>
+    </ol>
+    <p>❌ Generic answer without policy detail → tool not being called; check system prompt and agent wiring.</p>
+  </div>
+
+  <!-- STEP 11 -->
+  <h2 id="step11"><span class="step-number">11</span> Checkpointer &amp; <code>agent.get_state</code></h2>
+
+  <p><span class="why-label">Why:</span> The spec stores conversation history in a LangChain checkpointer, <strong>not</strong> in SQL. <code>SqliteSaver</code> keeps agent state per <code>thread_id</code>. The UI should <strong>not</strong> keep its own copy of transcripts. After each turn (and when switching chats), redraw from <code>agent.get_state(config)</code> — the same pattern as <code>03-02streamlit-chatbot-memory.html</code>.</p>
+
+  <h4>11.1 — Update <span class="file-path">agent.py</span></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Import <code>SqliteSaver</code>, <code>os</code>, <code>sqlite3</code>.</li>
+    <li><code>get_checkpointer()</code>: singleton; path from <code>CHECKPOINTS_DB_PATH</code> env or <code>checkpoints.sqlite</code>; connect with <code>check_same_thread=False</code> (Streamlit multi-thread); <code>SqliteSaver(conn=...)</code>; call <code>setup()</code>.</li>
+    <li>Pass <code>checkpointer=get_checkpointer()</code> into <code>create_agent</code>.</li>
+    <li><code>get_thread_config(user_email, conversation_id)</code> returns dict with <code>configurable: {thread_id: f"{email}:{conv_id}"}</code> and <code>recursion_limit: 20</code>.</li>
+  </ol>
+
+  <h4>11.2 — Sidebar: conversation IDs only (not messages)</h4>
+  <p><span class="why-label">Why:</span> The checkpointer already has the messages. The UI only needs a list of thread ids so the dropdown can switch chats — like <code>chat_threads.json</code> in the memory chatbot lab.</p>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Add helpers (JSON file is fine): <code>load_threads(user_email)</code>, <code>save_threads</code>, <code>add_thread(user_email, conversation_id)</code>.</li>
+    <li>Store <code>[{"id": "...", "label": "Chat abc12345"}, ...]</code> <strong>per user</strong>. Do <strong>not</strong> store message bodies.</li>
+    <li>On login: load that user's thread ids. If any exist, set <code>conversation_id</code> to the first. Else start a new UUID and <code>add_thread</code>.</li>
+    <li>"Start new conversation": new UUID, <code>add_thread</code>, set <code>conversation_id</code>, <code>st.rerun()</code>.</li>
+    <li>Selectbox: when the user picks another id, set <code>conversation_id</code> and rerun. Do <strong>not</strong> copy messages from a dict — <code>get_state</code> will load that thread.</li>
+  </ol>
+
+  <h4>11.3 — Replace <code>render_history()</code> with <code>get_state</code></h4>
+  <p><strong>What to do:</strong> Stop rendering <code>st.session_state.messages</code>. For the active user + conversation:</p>
+  <pre><code>config = get_thread_config(user_email, conversation_id)
+snapshot = get_agent().get_state(config)
+for msg in snapshot.values.get("messages", []):
+    if msg.type == "human":
+        with st.chat_message("user"):
+            st.markdown(msg.content)
+    elif msg.type == "ai" and msg.content:
+        with st.chat_message("assistant"):
+            st.markdown(msg.content)</code></pre>
+  <p class="small">Skip empty AI messages (tool-call-only turns). Human and AI bubbles come from the checkpointer, not from session state.</p>
+
+  <h4>11.4 — Replace <code>chat_round()</code></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Import <code>get_thread_config</code>.</li>
+    <li>Invoke the agent with <strong>only</strong> the new user message and the thread config:
+      <code>get_agent().invoke({"messages": [{"role": "user", "content": user_input}]}, config=get_thread_config(...))</code></li>
+    <li>Call <code>st.rerun()</code>. The next run of <code>render_history()</code> reads the full thread from <code>get_state</code>.</li>
+  </ol>
+  <p class="small">Do not append messages to session as the source of truth. Do not write transcripts to SQLite or JSON.</p>
+
+  <div class="test-box">
+    <div class="test-title">Step 11 complete — checkpoint</div>
+    <ol>
+      <li>Say: <strong>"My name is Alice and I love hiking"</strong></li>
+      <li>Ask: <strong>"What did I just tell you?"</strong> — should remember</li>
+      <li>Start new conversation, ask <strong>"What's my name?"</strong> — should NOT know</li>
+      <li>Switch back in the sidebar — Alice/hiking history reappears via <code>get_state</code></li>
+      <li>Stop Streamlit, start again, log in, pick the same thread — history still there</li>
+      <li><code>checkpoints.sqlite</code> exists. There is <strong>no</strong> <code>conversations.db</code></li>
+    </ol>
+  </div>
+
+  <!-- STEP 12 -->
+  <h2 id="step12"><span class="step-number">12</span> Logging middleware</h2>
+
+  <p><span class="why-label">Why:</span> The specification requires observability via LangChain middleware. Terminal logs help you debug tool loops during development.</p>
+
+  <h4>12.1 — Create <span class="file-path">middleware.py</span></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li><code>_ts()</code> — formatted timestamp string.</li>
+    <li><code>@wrap_model_call model_logging_middleware</code>: log message count, preview last message, call handler, log response preview and any tool_calls, catch/log errors.</li>
+    <li><code>@wrap_tool_call tool_logging_middleware</code>: log tool_calls from last message, call handler, log success/error.</li>
+    <li><code>get_logging_middleware()</code> returns list of both functions.</li>
+  </ol>
+
+  <h4>12.2 — Wire in <span class="file-path">agent.py</span></h4>
+  <p><strong>What to do:</strong> Import <code>get_logging_middleware</code>; add <code>middleware=get_logging_middleware()</code> to <code>create_agent</code> (keep checkpointer).</p>
+
+  <div class="test-box">
+    <div class="test-title">Step 12 complete — checkpoint</div>
+    <p>Restart Streamlit. Ask a policy question. In the <strong>terminal</strong> (not browser), you should see lines like MODEL REQUEST → TOOL → MODEL RESPONSE.</p>
+  </div>
+
+  <!-- STEP 13 -->
+  <h2 id="step13"><span class="step-number">13</span> SQL Database Toolkit</h2>
+
+  <p><span class="why-label">Why:</span> User-specific questions ("my orders", "order status") must come from <code>ecommerce.db</code> via LangChain's SQL toolkit — not from RAG or hallucination.</p>
+
+  <h4>13.1 — Create <span class="file-path">sql_tools.py</span></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li><code>get_database()</code>: SQLDatabase.from_uri pointing to project root <code>ecommerce.db</code>.</li>
+    <li><code>get_sql_tools()</code>: SQLDatabaseToolkit with db + ChatOpenAI temperature 0; return <code>toolkit.get_tools()</code>.</li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "from langchain_bot.sql_tools import get_sql_tools; print([t.name for t in get_sql_tools()])"</code></pre>
+    <p class="small">Should list tools like sql_db_list_tables, sql_db_query, etc.</p>
+  </div>
+
+  <h4>13.2 — Update <span class="file-path">agent.py</span></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li>Tools = <code>[search_policies] + get_sql_tools()</code></li>
+    <li>Expand system prompt with capability #2: SQL for orders, returns, payments, spend.</li>
+    <li><strong>Security rule in prompt:</strong> always JOIN/WHERE filter by logged-in user's email; never return other users' rows; example JOIN patterns for orders and tickets.</li>
+  </ol>
+
+  <div class="test-box">
+    <div class="test-title">Step 13 complete — checkpoint</div>
+    <p>Log in as <code>sivaprasad.valluru@gmail.com</code>. Watch terminal logs.</p>
+    <ol>
+      <li><strong>"Show me my orders"</strong> — only your orders</li>
+      <li><strong>"What items are in order #10?"</strong> — details if you own it</li>
+      <li>Try asking about another user's data — should refuse or show nothing</li>
+    </ol>
+  </div>
+
+  <!-- STEP 14 -->
+  <h2 id="step14"><span class="step-number">14</span> Gmail tools (OAuth)</h2>
+
+  <p><span class="why-label">Why:</span> Cancellations and returns should trigger email notifications. Gmail OAuth runs once; token is cached in <code>token.pickle</code>.</p>
+
+  <h4>14.1 — Google Cloud (browser)</h4>
+  <ol>
+    <li>Create project → enable Gmail API.</li>
+    <li>OAuth consent screen (External) → add your Gmail as test user.</li>
+    <li>Create Desktop OAuth client → download JSON as <code>credentials.json</code> in project root.</li>
+  </ol>
+
+  <h4>14.2 — Create <span class="file-path">gmail_tools.py</span></h4>
+  <p><strong>What to do:</strong></p>
+  <ol>
+    <li><code>get_gmail_service()</code>: scope gmail.send only; load token.pickle if exists; refresh or run local OAuth server; save token; return Gmail API resource via googleapiclient <code>build</code>.</li>
+    <li><code>initialize_gmail() → bool</code>: try init once, cache service, return False on missing credentials (app still runs).</li>
+    <li><code>get_gmail_tools()</code>: return <code>[GmailSendMessage(api_resource=...)]</code> or empty list.</li>
+    <li><code>is_gmail_available()</code> for UI.</li>
+  </ol>
+
+  <h4>14.3 — Update agent + app</h4>
+  <p><strong>What to do:</strong></p>
+  <ul>
+    <li>Agent: extend tools with <code>get_gmail_tools()</code>; prompt capability #3 — when to send "request received" emails.</li>
+    <li>App: on startup call <code>initialize_gmail()</code>; sidebar shows Gmail Enabled / Not configured; add <code>reset_agent()</code> in agent.py if you need to rebuild agent after Gmail init.</li>
+  </ul>
+
+  <div class="test-box">
+    <div class="test-title">Step 14 complete — checkpoint</div>
+    <p>First Streamlit run may open OAuth browser — sign in as test user. Sidebar shows <strong>Gmail: Enabled</strong>. If skipping Gmail, document in README and confirm app still runs.</p>
+  </div>
+
+  <!-- STEP 15 -->
+  <h2 id="step15"><span class="step-number">15</span> Human-in-the-loop &amp; Admin dashboard</h2>
+
+  <p><span class="why-label">Why:</span> The spec forbids auto-approving returns/cancellations. HITL interrupts dangerous tools until an admin resumes the same LangGraph thread.</p>
+
+  <h3>End-to-end flow (read before coding)</h3>
+  <ol class="small">
+    <li>Customer asks cancel/return → agent verifies via SQL → optional email → calls action tool → <strong>interrupt</strong>.</li>
+    <li><code>handle_interrupt</code> writes <code>pending_actions</code> row; customer sees pending message.</li>
+    <li>Admin on port 8502 approves → <code>resume_with_decision(thread_id, ...)</code> → tool runs SQL updates → confirmation email.</li>
+  </ol>
+
+  <h4>15.1 — <span class="file-path">context.py</span></h4>
+  <p><strong>What to do:</strong> Dataclass <code>SessionContext</code> with user_email, conversation_id, role (default customer). Used as <code>context_schema</code> on create_agent so tools get identity via ToolRuntime — LLM only passes order_id etc.</p>
+
+  <h4>15.2 — Extend <span class="file-path">ecommerce_setup.sql</span></h4>
+  <p><strong>What to do:</strong> Add <code>pending_actions</code> table (thread_id, user_email, action_type, order_id, product_name, reason, status, timestamps). Re-run db_init.</p>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe</div>
+    <pre><code>python -m uv run python -c "import sqlite3; print(sqlite3.connect('ecommerce.db').execute(\"SELECT name FROM sqlite_master WHERE type='table' AND name='pending_actions'\").fetchone())"</code></pre>
+  </div>
+
+  <h4>15.3 — <span class="file-path">action_tools.py</span></h4>
+  <p><strong>What to do — two @tool functions with ToolRuntime[SessionContext]:</strong></p>
+  <ul>
+    <li><code>cancel_order_action(order_id, runtime)</code>: after approval — verify user owns order, status PLACED only; UPDATE orders CANCELLED, payments REFUNDED; INSERT ticket with thread_id; return confirmation text.</li>
+    <li><code>create_return_action(order_id, product_name, reason, runtime)</code>: after approval — SHIPPED/DELIVERED only; reject PLACED with message to cancel instead; INSERT return, ticket, refund payment; return confirmation.</li>
+  </ul>
+  <p>Export <code>get_action_tools()</code>.</p>
+
+  <h4>15.4 — Update <span class="file-path">agent.py</span></h4>
+  <p><strong>What to do:</strong> HumanInTheLoopMiddleware on action tools; add to tool list; context_schema=SessionContext; rewrite prompt with step-by-step cancel/return flows (SQL verify → email if Gmail → one action tool); one tool per turn; max SQL query attempts in prompt.</p>
+
+  <h4>15.5 — <span class="file-path">hitl_utils.py</span></h4>
+  <p><strong>What to do:</strong></p>
+  <ul>
+    <li><code>handle_interrupt(...)</code> — detect interrupt in agent result; INSERT pending_actions; return markdown for chat UI.</li>
+    <li><code>resume_with_decision(thread_id, approve|reject, ...)</code> — Command(resume=...) on same agent + config; update pending row status.</li>
+    <li>Helpers: list pending rows, optional dedupe / block duplicate pending for same thread.</li>
+  </ul>
+
+  <h4>15.6 — Update <span class="file-path">app.py</span></h4>
+  <p><strong>What to do:</strong> Pass SessionContext when invoking the agent. After invoke, <code>st.rerun()</code> so <code>get_state</code> redraws the thread (including any pending/interrupt message). If the result is an interrupt, <code>handle_interrupt</code> writes a <code>pending_actions</code> row (business data, not a chat transcript). Prevent duplicate pending requests if the user repeats cancel.</p>
+
+  <h4>15.7 — Create <span class="file-path">app_admin.py</span> (build incrementally)</h4>
+  <ol>
+    <li>Admin login form (role=admin).</li>
+    <li>Query and display PENDING rows from pending_actions.</li>
+    <li>Filters: status, email (optional).</li>
+    <li>Per row: show user_email, order_id, action_type, thread_id.</li>
+    <li>Approve / Reject buttons → resume_with_decision → show result → refresh list.</li>
+  </ol>
+  <div class="run-box">
+    <div class="run-title">Run &amp; observe — two terminals</div>
+    <pre><code>python -m uv run streamlit run app.py
+python -m uv run streamlit run app_admin.py --server.port 8502</code></pre>
+  </div>
+
+  <div class="test-box">
+    <div class="test-title">Step 15 complete — full HITL test</div>
+    <p class="small"><strong>Seed tips:</strong> For sivaprasad — order <strong>13</strong> = PLACED (cancel); order <strong>10</strong> SHIPPED or <strong>4</strong> DELIVERED (return).</p>
+    <ol>
+      <li><strong>Cancel:</strong> Customer asks to cancel PLACED order → pending message → admin approves → order CANCELLED in DB.</li>
+      <li><strong>Return:</strong> SHIPPED order + exact product name from SQL → pending → admin approves → return row created.</li>
+      <li><strong>Invalid:</strong> Return on PLACED order → agent refuses, suggests cancel.</li>
+      <li>Terminal shows tool logging on both customer and admin actions.</li>
+    </ol>
+  </div>
+
+  <!-- CHECKLIST -->
+  <h2 id="checklist">Final submission checklist</h2>
+  <table>
+    <tr><th>Requirement</th><th>How to verify</th></tr>
+    <tr><td>Single LangChain 1.x agent</td><td>One create_support_agent; tools merged there</td></tr>
+    <tr><td>Customer login + UUID threads</td><td>Login form; sidebar; conversation_id visible</td></tr>
+    <tr><td>SQL data questions</td><td>"Show my orders" with email filter</td></tr>
+    <tr><td>RAG policy questions</td><td>"Returns policy?" uses search_policies</td></tr>
+    <tr><td>HITL cancel/return</td><td>Pending → admin approve → DB updated</td></tr>
+    <tr><td>Checkpointer</td><td>Memory per thread via agent.get_state; no transcripts in SQL</td></tr>
+    <tr><td>Middleware logging</td><td>Terminal logs on model/tool calls</td></tr>
+    <tr><td>Gmail</td><td>Notifications or documented skip</td></tr>
+    <tr><td>No secrets in git</td><td>.env, credentials.json gitignored</td></tr>
+  </table>
+
+  <div class="note">
+    <strong>Working habit</strong>
+    <p class="small">Every sub-step in this guide follows the same loop: understand why → implement the small change → run the Run &amp; observe block → only then continue. That is how you build the capstone incrementally without debugging fifteen steps at once.</p>
+  </div>
+
+</main>
+</body>
+</html>
